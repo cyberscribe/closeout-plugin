@@ -75,6 +75,12 @@ Drafts live at `~/.claude/closeout-drafts/<project-basename>/<session-id>.md` â€
 deliberately outside the git repo: never committed by accident, per-user, and
 persistent across reboots.
 
+## Default taxonomy
+
+The default taxonomy aligns with [Robert Peake](https://www.robertpeake.com/ai)'s research and observations about optimising AI co-cognition at organisational scale:
+
+![Figure 1 - distributed knowledge management for agentic AI at organisational scale](https://www.robertpeake.com/files/2026/08/exec-fn-ai-org_2026-08-26-scaled.png "Figure 1 - distributed knowledge management for agentic AI at organisational scale")
+
 ## Required project setup
 
 Two things the plugin cannot do for you, because a plugin cannot edit your
