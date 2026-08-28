@@ -1,0 +1,17 @@
+{
+  "name": "closeout",
+  "version": "1.0.0",
+  "description": "A safety net for the end-of-session documentation ritual: /closeout promotes learnings live, and if you forget, a SessionEnd hook captures them into a draft the next session offers to promote.",
+  "author": {
+    "name": "Robert Peake",
+    "url": "https://github.com/cyberscribe"
+  },
+  "keywords": [
+    "documentation",
+    "hooks",
+    "session",
+    "knowledge-capture"
+  ],
+  "homepage": "https://github.com/cyberscribe/closeout-plugin",
+  "repository": "https://github.com/cyberscribe/closeout-plugin"
+}

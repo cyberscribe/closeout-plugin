@@ -1,0 +1,18 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "closeout-marketplace",
+  "description": "Single-plugin marketplace hosting the closeout documentation safety net.",
+  "owner": {
+    "name": "Robert Peake",
+    "url": "https://github.com/cyberscribe"
+  },
+  "plugins": [
+    {
+      "name": "closeout",
+      "description": "A safety net for the end-of-session documentation ritual: /closeout promotes learnings live, and if you forget, a SessionEnd hook captures them into a draft the next session offers to promote.",
+      "source": "./",
+      "category": "productivity",
+      "homepage": "https://github.com/cyberscribe/closeout-plugin"
+    }
+  ]
+}
