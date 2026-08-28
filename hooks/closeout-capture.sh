@@ -85,12 +85,29 @@ find "$DRAFT_DIR" -maxdepth 1 -type f -name '.closeout-ran.*' -mmin +360 -delete
 
 draft_file="$DRAFT_DIR/${session_id:-$(date +%s)}.md"
 
+# (7) The promotion taxonomy. A project that defines its own tiers owns the
+# section outright; otherwise the plugin's default table is supplied.
+if [[ -n "$CONVENTIONS_DEFINE_TIERS" ]]; then
+    taxonomy="This project defines its own promotion tiers. Use exactly those — the
+tier names, destinations and load rates below come from the project, and no other
+taxonomy applies."
+else
+    taxonomy="TIER — where it belongs, which decides how often it is loaded back:
+
+$TIER_TABLE
+
+SCOPE — shared (committed, reaches teammates) or individual (this machine and
+user only). A learning a teammate would need is worthless in an individual
+destination."
+fi
+
 # Per-project conventions, if the team wrote any, appended verbatim.
 conventions=""
 if [[ -f "$CONVENTIONS_FILE" ]]; then
     conventions="
 
-This project also defines its own closeout conventions. Follow them:
+This project's own closeout conventions follow. They override everything above —
+tier names, destinations, load rates, and any house rules:
 
 $(cat "$CONVENTIONS_FILE")"
 fi
@@ -104,17 +121,36 @@ Identify only DURABLE facts a future agent would otherwise have to re-derive:
 architectural/structural decisions made, non-obvious constraints discovered,
 state of in-progress work, and gotchas. Ignore routine edits and chit-chat.
 
+Classify every item you keep on two axes before writing it down.
+
+$taxonomy
+
+Default to the CHEAPEST tier that still works, and prefer a narrower scope when
+in doubt. The always-loaded tier is a budget paid by every future session, not a
+folder: put something there only if a session that never thought to ask for it
+would still go wrong without it. Everything else is cheaper as reference that
+loads on demand.
+
 Write a concise markdown summary of candidate documentation updates to:
   $draft_file
 
-For each item, name the in-repo doc it likely belongs in (${DOC_TARGETS}) and
-give a one-to-three sentence note. Do NOT edit any in-repo documentation
-yourself — only write the scratch summary file.
+One section per item, in this shape:
+
+  ### <one-line claim>
+  - tier: <tier name>
+  - scope: shared | individual
+  - destination: <the specific file or directory>
+  - why this tier: <one sentence; say what would go wrong at a cheaper tier>
+
+  <the note itself, one to three sentences>
+
+Do NOT edit any in-repo documentation yourself — only write the scratch summary
+file. You are proposing; a human approves the tier before anything is promoted.
 
 If nothing durable was learned, do not create the file at all.${conventions}
 EOF
 
-# (7) Spawn fully detached so the human's session exit is never blocked.
+# (8) Spawn fully detached so the human's session exit is never blocked.
 # Blast radius is bounded deliberately: Read/Write tools only, and --add-dir
 # limited to exactly the transcript's directory (read) and the draft directory
 # (write) — the child cannot touch the repo, settings, or other projects.

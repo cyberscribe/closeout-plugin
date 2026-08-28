@@ -69,7 +69,7 @@ if you don't, the hooks silently never run and you get `/closeout` only.
 |------|--------------|
 | `/closeout` command | A saved prompt. Type it before ending a session and the agent reviews learnings and updates durable docs **live, with full context** — the highest-quality path. |
 | Capture hook (`SessionEnd`) | Spawns a **detached, sandboxed** headless `claude -p` that reads the just-ended transcript and writes candidate notes to a draft file outside the repo. The automatic backstop. |
-| Review hook (`SessionStart`) | If drafts exist, injects a reminder instructing the agent to surface them first-thing and offer to promote — verify each claim against current code, then promote and delete the draft, only with your go-ahead. Never silently. |
+| Review hook (`SessionStart`) | If drafts exist, injects a reminder instructing the agent to surface them first-thing and offer to promote — confirm the proposed tier, verify each claim against current code, then promote and delete the draft, only with your go-ahead. Never silently. |
 
 ```
 session ends ──▶ SessionEnd ──▶ closeout-capture.sh
@@ -118,17 +118,58 @@ not the one in which you edited it.
 
 ## Configuring it
 
-Zero configuration required. The plugin auto-detects your docs directory
-(`docs/` → `doc/` → `documentation/` → repo root).
+Zero configuration required. The plugin auto-detects your documentation directory
+(`docs/` → `doc/` → `documentation/` → repo root) and the conventional locations
+for the other tiers.
 
-**Per-project conventions.** If your team has its own closeout rules — extra
-tracking files, a role-scoped work queue, a house style for doc edits — write
-them in `.claude/closeout.md`. Both the `/closeout` command and the capture hook
-read that file and follow it, and it overrides the defaults. This is the intended
-extension point; there is no config schema to learn. See
-[`examples/project-conventions.md`](examples/project-conventions.md).
+### The promotion taxonomy
 
-**Environment variables**, set under `"env"` in the project's `.claude/settings.json`:
+A captured learning is classified on two axes before anything is promoted:
+
+**Tier**, which decides how often it is loaded back into context:
+
+| Tier | Loaded back | Shared destination (detected) | Individual destination |
+|---|---|---|---|
+| Working standards | ALWAYS — every session, every turn | `CLAUDE.md` | `~/.claude/CLAUDE.md` |
+| General reference | as needed, in ANY project | `.claude/skills/` | `~/.claude/skills/` |
+| Project reference | as needed, only in THIS project | `docs/`, `docs/DECISIONS.md` | `~/.claude/projects/<p>/memory/` |
+| Templates & agent roles | as needed, when invoked | `.claude/agents/`, `.claude/commands/` | `~/.claude/agents/` |
+
+**Scope**: shared (committed, reaches teammates) or individual (this machine only).
+
+The agent is told to default to the cheapest tier that works, and that the
+always-loaded tier is a budget rather than a folder — promotion into it is
+zero-sum, and must name what it displaces or justify the budget growing. Every
+other tier is additive. That rule is the point of the taxonomy: without it an
+always-on file grows monotonically and every future session pays for it.
+
+### Overriding it
+
+Two levels, depending on how much you want to change.
+
+**Moving destinations** — keep the four tiers, point them at your files. Set these
+under `"env"` in the project's `.claude/settings.json`:
+
+| Variable | Default |
+|---|---|
+| `CLOSEOUT_TIER_ALWAYS` | first of `CLAUDE.md`, `AGENTS.md` |
+| `CLOSEOUT_TIER_GENERAL` | first of `.claude/skills/`, `.claude/plugins/` |
+| `CLOSEOUT_TIER_PROJECT` | `<doc dir>/`, `<doc dir>/DECISIONS.md` |
+| `CLOSEOUT_TIER_TEMPLATES` | first of `.claude/agents/`, `.claude/commands/` |
+
+**Replacing the taxonomy** — different tiers, names, count, or load rates. Put a
+`## Promotion tiers` heading in `.claude/closeout.md`. The plugin detects that
+heading, suppresses its own table entirely so the prompts never carry two
+competing tier lists, and treats your section as the only taxonomy. The
+`CLOSEOUT_TIER_*` variables are then ignored.
+
+`.claude/closeout.md` is read verbatim by both the command and the capture hook,
+and overrides everything — tier names, destinations, load rates, and any house
+rules you add. It is prose appended to a prompt; there is no schema to learn. See
+[`examples/project-conventions.md`](examples/project-conventions.md) for both
+forms worked through.
+
+### Other environment variables
 
 | Variable | Default | Purpose |
 |---|---|---|
@@ -136,7 +177,6 @@ extension point; there is no config schema to learn. See
 | `CLOSEOUT_MODEL` | `sonnet` | Model for the capture child. `haiku` is cheaper. |
 | `CLOSEOUT_DOC_DIR` | auto-detected | Documentation directory, repo-relative. |
 | `CLOSEOUT_DECISIONS_FILE` | `<doc dir>/DECISIONS.md` | Where architectural decisions are logged. |
-| `CLOSEOUT_DOC_TARGETS` | derived | Free-text override for the destinations named in prompts. |
 | `CLOSEOUT_MIN_LINES` | `6` | Transcript lines below which a session is too trivial to capture. |
 | `CLOSEOUT_DRAFT_ROOT` | `~/.claude/closeout-drafts` | Where drafts are kept. |
 | `CLOSEOUT_DRAFT_RETENTION_DAYS` | `3` | Age at which an unpromoted draft is pruned. |

@@ -89,6 +89,64 @@ POSIX shell. Both are used; presence decides which.
 The detach matters for a mundane reason: without it, quitting Claude Code would
 block for the 20–40s the child's API call takes.
 
+## Why promotion is tiered
+
+The first version promoted into one undifferentiated bucket: "durable docs". That
+answers *is this worth keeping?* and stops there, which is the wrong question to
+stop on.
+
+What actually costs something is not storage, it is **load rate**. A note in an
+always-loaded file is paid for by every future session in that project, forever,
+whether or not it is relevant to the task at hand. A note in a reference file that
+loads on demand costs nothing until something asks for it. Those are different
+decisions by orders of magnitude, and a flat destination list hides the difference.
+
+So promotion classifies on two axes:
+
+- **Tier** — how often it is loaded back. Four by default: always-loaded working
+  standards, cross-project general reference, per-project reference, and templates
+  or agent role definitions.
+- **Scope** — shared (committed, reaches teammates) or individual (one machine,
+  one user). A learning a teammate needs is worthless in an individual destination,
+  and this is the axis people get wrong most often.
+
+The rule that makes the taxonomy do work rather than just describe things:
+**promotion into the always-loaded tier is zero-sum.** It must name what it
+displaces or justify the budget growing; every other tier is additive. Without
+that, an always-on file only ever grows — each individual addition is defensible,
+the aggregate is not, and nobody is ever in the room where the aggregate is
+decided. A capture-and-promote loop makes that erosion faster, not slower, which
+is exactly why the loop needs the constraint.
+
+The agent is also told to default to the cheapest tier that works. The bias has to
+be explicit, because "put it where it will definitely be seen" is the locally
+rational choice every time.
+
+## Two levels of override, and why not a schema
+
+Teams disagree about tiers. Some want three, some want six, some already have a
+vocabulary ("playbooks", "runbooks", "standing orders") that a plugin has no
+business renaming.
+
+Encoding that as configuration means inventing a schema — tier objects with names,
+load rates, destination globs, scope mappings — that will not survive contact with
+the third team to adopt it.
+
+So there are two levels instead:
+
+- **Destinations move by environment variable** (`CLOSEOUT_TIER_ALWAYS` and
+  friends). Keeps the default four tiers, points them at your files. One line each
+  in `.claude/settings.json`, no file to write.
+- **The taxonomy is replaced by prose.** A `## Promotion tiers` heading in
+  `.claude/closeout.md` and the plugin's own table is suppressed entirely — both
+  prompts then carry the project's section and nothing else. Detection is a single
+  `grep -qiE` for the heading.
+
+The suppression matters more than it looks. An earlier shape appended the project
+table *after* the default one, and the model had to reconcile two tier lists that
+disagreed; it split the difference roughly half the time. A taxonomy is not
+additive. Either the plugin's applies or the project's does.
+
 ## Extension via `.claude/closeout.md`
 
 Teams have their own closeout rules — a tracking queue to reconcile, locks to
@@ -97,7 +155,8 @@ means inventing a schema that will never fit the next team.
 
 Instead, an optional `.claude/closeout.md` in the consuming project is read
 verbatim by both the command and the capture prompt. Prose in, prose out. It costs
-one file check and covers arbitrary conventions.
+one file check and covers arbitrary conventions — including replacing the
+promotion taxonomy outright, as above.
 
 ## Troubleshooting
 
