@@ -1,19 +1,8 @@
 # closeout — a documentation safety net for Claude Code
 
-Sessions end and their learnings evaporate. The decision you made, the constraint
-you discovered, the state of the half-finished work — all of it lives in a
-transcript nobody will read again.
+I have found that promoting documentation into durable memory for purposes of session continuity as well as team sharing is one of the more valuable, but difficult to enforce, information management disciplines in co-working with agentic AI. This plugin helps with that.
 
-The habit that fixes this is asking the agent to *"review what you learned and
-update the docs"* before you close. The habit works. People forget it.
-
-This plugin makes the habit explicit (`/closeout`) and adds a backstop for when
-you forget: on session end a detached headless agent reads the transcript and
-writes candidate doc-notes to a draft outside the repo; on your next session in
-that project the agent surfaces the draft and offers to promote it.
-
-It is **not** a replacement for updating docs during real work. It is the net
-under the sessions where the ritual was skipped.
+It is **not** a replacement for updating docs during real work. It is the net under the sessions where the closeout was missed.
 
 ## Install
 
