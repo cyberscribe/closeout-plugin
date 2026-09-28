@@ -4,10 +4,19 @@ I have found that promoting documentation into durable memory for purposes of se
 
 It is **not** a replacement for updating docs during real work. It is the net under the sessions where the closeout was missed.
 
+## Where it lives
+
+This repository is the plugin on its own. It is also bundled, identically, in the
+[workspace context kit](https://github.com/cyberscribe/agentic-workspace-kit) at
+`plugins/closeout/` — the kit is the wider practice the plugin implements one
+ritual of, with an installer that deploys both into a team repository. Changes
+are made in the kit and published here, so issues and pull requests are best
+opened there.
+
 ## Install
 
 ```
-/plugin marketplace add cyberscribe/agentic-workspace-kit
+/plugin marketplace add cyberscribe/closeout-plugin
 /plugin install closeout@closeout-marketplace
 ```
 
@@ -25,7 +34,7 @@ To pin it for a whole team instead, commit this to the repository's
 {
   "extraKnownMarketplaces": {
     "closeout-marketplace": {
-      "source": { "source": "github", "repo": "cyberscribe/agentic-workspace-kit" }
+      "source": { "source": "github", "repo": "cyberscribe/closeout-plugin" }
     }
   },
   "enabledPlugins": { "closeout@closeout-marketplace": true }
