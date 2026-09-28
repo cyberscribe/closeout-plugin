@@ -184,7 +184,7 @@ forms worked through.
 | `CLOSEOUT_DECISIONS_FILE` | `<doc dir>/DECISIONS.md` | Where architectural decisions are logged. |
 | `CLOSEOUT_MIN_LINES` | `6` | Transcript lines below which a session is too trivial to capture. |
 | `CLOSEOUT_DRAFT_ROOT` | `~/.claude/closeout-drafts` | Where drafts are kept. |
-| `CLOSEOUT_DRAFT_RETENTION_DAYS` | `3` | Age at which an unpromoted draft is pruned. |
+| `CLOSEOUT_DRAFT_RETENTION_DAYS` | `3` | Days a draft stays after it has first been offered in a session; a draft nobody has been shown is kept. |
 | `CLOSEOUT_CLAUDE_BIN` | auto-detected | Explicit path to the `claude` binary. |
 | `CLOSEOUT_TEAM` | unset | Comma-separated names. Overrides team detection for the "who needs to know" step. |
 | `CLOSEOUT_PEOPLE_DIR` | first of `memory/people`, `docs/people`, `people` | Where one-file-per-person profiles live. |
@@ -208,7 +208,7 @@ Resolved against a minimal hook environment, not your shell:
 
 - **`jq`** — required. Ships with macOS; `apt install jq` / `brew install jq` elsewhere.
 - **`claude`** — the capture script probes `command -v`, then `~/.local/bin/claude`,
-  then `/usr/local/bin/claude`. Set `CLOSEOUT_CLAUDE_BIN` if yours is elsewhere.
+  then `/usr/local/bin/claude`, then `/opt/homebrew/bin/claude`. Set `CLOSEOUT_CLAUDE_BIN` if yours is elsewhere.
 - **`nohup`** — required (system).
 - **`setsid`** — *optional*. Used for a clean detach when present; **not on stock
   macOS**. Falls back to `nohup … & disown`, which works without it.
@@ -224,8 +224,9 @@ Each non-trivial session close spawns one headless run billed to your account.
 The capture child is deliberately boxed in:
 
 - `--allowedTools "Read,Write"` — no Bash, no network tools.
-- `--add-dir` limited to exactly the transcript's directory (read) and the draft
-  directory (write). It cannot touch your repo, your settings, or other projects.
+- It runs from the draft directory, so that is its working directory and your
+  repository is outside its reach. The transcript's directory, added with
+  `--add-dir` so it can read the session, is the one grant beyond that.
 - It is told explicitly not to edit any in-repo documentation — only the scratch file.
 
 Promotion into real docs always happens in a normal, interactive session with
@@ -243,6 +244,12 @@ your approval.
   to tell them apart.
 - **Recursion guard.** The capture child would itself trigger `SessionEnd` on exit;
   the script early-exits when `CLOSEOUT_HOOK_CHILD` is set. Do not remove that guard.
+- **The `/closeout` sentinel follows the project root.** `/closeout` keys its
+  draft directory off the session's project directory (`CLAUDE_PROJECT_DIR`, else
+  the git top level, else the current directory). A session that has `cd`'d into a
+  different repository would still write it to the wrong place; setting
+  `CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR=1` keeps the agent's shell in the
+  project and removes the case.
 - **Project keying is by directory basename.** Two checkouts with the same
   basename share a draft directory. Set `CLOSEOUT_DRAFT_ROOT` per checkout if that
   bites you.

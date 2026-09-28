@@ -54,6 +54,7 @@ lines="$(wc -l < "$transcript_path" 2>/dev/null || echo 0)"
 CLAUDE_BIN="${CLOSEOUT_CLAUDE_BIN:-$(command -v claude || true)}"
 [[ -z "$CLAUDE_BIN" && -x "$HOME/.local/bin/claude" ]] && CLAUDE_BIN="$HOME/.local/bin/claude"
 [[ -z "$CLAUDE_BIN" && -x "/usr/local/bin/claude" ]] && CLAUDE_BIN="/usr/local/bin/claude"
+[[ -z "$CLAUDE_BIN" && -x "/opt/homebrew/bin/claude" ]] && CLAUDE_BIN="/opt/homebrew/bin/claude"
 [[ -z "$CLAUDE_BIN" ]] && exit 0
 
 project_dir="${cwd:-$PWD}"
@@ -167,9 +168,12 @@ If nothing durable was learned, do not create the file at all.${team_section}${c
 EOF
 
 # (8) Spawn fully detached so the human's session exit is never blocked.
-# Blast radius is bounded deliberately: Read/Write tools only, and --add-dir
-# limited to exactly the transcript's directory (read) and the draft directory
-# (write) — the child cannot touch the repo, settings, or other projects.
+# Blast radius is bounded deliberately: Read/Write tools only, and the child runs
+# from the draft directory, so that is its working directory and the repository
+# is outside its reach. --add-dir adds to the working directory rather than
+# restricting it, which is why the cd matters: spawned from the project, the
+# child could write anywhere in the repo. The transcript's directory is the one
+# grant beyond the draft directory (read, for the transcript; see DESIGN.md).
 child_args=(
     "$CLAUDE_BIN" -p "$PROMPT"
     --model "${CLOSEOUT_MODEL:-sonnet}"
@@ -178,6 +182,8 @@ child_args=(
     --add-dir "$DRAFT_DIR"
     --add-dir "$(dirname "$transcript_path")"
 )
+
+cd "$DRAFT_DIR"
 
 # Prefer setsid for a clean full detach, but it is not on stock macOS (only via
 # MacPorts/Homebrew) and is absent on a stripped hook PATH. Fall back to

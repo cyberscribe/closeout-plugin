@@ -36,7 +36,10 @@ The cost is that the directory sits outside a sandboxed session's writable set,
 which is why the README asks for an `allowWrite` entry: otherwise the agent can
 read a draft and promote it but never delete it, and the same draft nudges
 forever. `closeout-review.sh` runs unsandboxed and prunes drafts past the
-retention window as a backstop.
+retention window as a backstop. Retention counts from the first session that
+surfaced the draft, recorded by a `.seen.<draft>` marker, never from capture time:
+a draft written before a week away is still waiting after it, and only a draft
+that has been offered and left for the window is pruned.
 
 ## The sentinel handshake
 
@@ -63,7 +66,16 @@ The child is an unattended agent run triggered by exiting a session. That deserv
 tight bounds:
 
 - `--allowedTools "Read,Write"` — no Bash, no network.
-- `--add-dir` restricted to the transcript's directory and the draft directory.
+- It runs from the draft directory, so the repository is outside its reach.
+  `--add-dir` adds to the working directory rather than restricting it; spawned
+  from the project, the child could write anywhere in the repo, and the bound
+  would be prompt-enforced only.
+- The transcript's directory is the one grant beyond the draft directory. It
+  holds the project's other transcripts and, for Claude Code, its `memory/`
+  folder; the child is prompted to write only its scratch file, and that part of
+  the bound is prompt-enforced.
+- The review hook exits at once inside the child (`CLOSEOUT_HOOK_CHILD`), so the
+  child is never told to surface drafts to a user it does not have.
 - Prompted explicitly to write only the scratch file, never in-repo docs.
 - `--permission-mode acceptEdits` — safe only *because* of the two bounds above.
 

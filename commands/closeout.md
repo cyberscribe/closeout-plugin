@@ -92,7 +92,8 @@ on top of the work you just promoted. This is the only out-of-repo file this
 command touches:
 
 ```bash
-d="${CLOSEOUT_DRAFT_ROOT:-$HOME/.claude/closeout-drafts}/$(basename "$PWD")" \
+root="${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}" \
+  && d="${CLOSEOUT_DRAFT_ROOT:-$HOME/.claude/closeout-drafts}/$(basename "$root")" \
   && mkdir -p "$d" \
   && touch "$d/.closeout-ran.${CLAUDE_CODE_SESSION_ID:-unknown}"
 ```
