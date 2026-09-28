@@ -112,6 +112,22 @@ tier names, destinations, load rates, and any house rules:
 $(cat "$CONVENTIONS_FILE")"
 fi
 
+# (7b) Who needs to know — only when the project names two or more people.
+team_section=""
+if [[ "${TEAM_COUNT:-0}" -ge 2 ]]; then
+    team_section="
+
+This project names more than one person:
+$(printf '%s\n' "$TEAM_MEMBERS" | sed 's/^/  - /')
+
+If you write the file, end it with one more section, headed '## Who needs to
+know'. Name a person from that list only where their work is affected by an item
+above — they own the area it touches, a decision changes what they are doing, or
+it blocks or unblocks them — one line each: who, what, and which item. If nobody
+in particular needs to hear about anything, write that in one line. You are
+suggesting; nothing is sent to anyone."
+fi
+
 read -r -d '' PROMPT <<EOF || true
 You are reviewing a just-ended Claude Code session for this project to capture
 durable learnings before they are lost. Read the session transcript (JSONL) at:
@@ -147,7 +163,7 @@ One section per item, in this shape:
 Do NOT edit any in-repo documentation yourself — only write the scratch summary
 file. You are proposing; a human approves the tier before anything is promoted.
 
-If nothing durable was learned, do not create the file at all.${conventions}
+If nothing durable was learned, do not create the file at all.${team_section}${conventions}
 EOF
 
 # (8) Spawn fully detached so the human's session exit is never blocked.

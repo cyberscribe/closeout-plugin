@@ -68,6 +68,7 @@ if you don't, the hooks silently never run and you get `/closeout` only.
 | `/closeout` command | A saved prompt. Type it before ending a session and the agent reviews learnings and updates durable docs **live, with full context** — the highest-quality path. |
 | Capture hook (`SessionEnd`) | Spawns a **detached, sandboxed** headless `claude -p` that reads the just-ended transcript and writes candidate notes to a draft file outside the repo. The automatic backstop. |
 | Review hook (`SessionStart`) | If drafts exist, injects a reminder instructing the agent to surface them first-thing and offer to promote — confirm the proposed tier, verify each claim against current code, then promote and delete the draft, only with your go-ahead. Never silently. |
+| Who needs to know | *Optional.* When the project names two or more people, `/closeout` and the capture draft end with a short table of who should hear about what, and why them. Nothing is sent; see below. |
 
 ```
 session ends ──▶ SessionEnd ──▶ closeout-capture.sh
@@ -185,6 +186,21 @@ forms worked through.
 | `CLOSEOUT_DRAFT_ROOT` | `~/.claude/closeout-drafts` | Where drafts are kept. |
 | `CLOSEOUT_DRAFT_RETENTION_DAYS` | `3` | Age at which an unpromoted draft is pruned. |
 | `CLOSEOUT_CLAUDE_BIN` | auto-detected | Explicit path to the `claude` binary. |
+| `CLOSEOUT_TEAM` | unset | Comma-separated names. Overrides team detection for the "who needs to know" step. |
+| `CLOSEOUT_PEOPLE_DIR` | first of `memory/people`, `docs/people`, `people` | Where one-file-per-person profiles live. |
+
+### Who needs to know
+
+Promotion decides where a learning is kept; this step decides who should hear
+about it now. It switches on by itself when the project names two or more people:
+one profile per person in the people directory (README excluded), bullets under a
+`## Team` heading in `.claude/closeout.md`, or an explicit `CLOSEOUT_TEAM`. With
+one person or none it stays out of the way.
+
+The output is a table — who, what, why them, and where it is recorded — and it is
+advice, not delivery. Nothing is sent: a message to a colleague goes out in a
+person's own voice. The table is kept out of the repository too, because it is
+communication rather than context and it is stale the moment it has been read.
 
 ## Dependencies
 

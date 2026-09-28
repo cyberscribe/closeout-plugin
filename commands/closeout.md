@@ -47,6 +47,33 @@ destinations and load rates all come from the project.
 Check every technical claim against the current code. Do not document a bug or
 behaviour that has since changed during this session.
 
+## Who needs to know — only when the project has more than one person
+
+This step is optional. It applies when the project names two or more people:
+profiles in the people directory (`memory/people/`, `docs/people/` or `people/`),
+a People or Team section in the project README or in `.claude/closeout.md`, or a
+`CLOSEOUT_TEAM` list in the environment. With one person or none, skip it without
+comment.
+
+Promotion decides where a learning is kept; this decides who should hear about
+it now. For each item promoted or proposed, name a person only where their work
+is affected — they own the area it touches, a decision changes what they are
+doing, it blocks or unblocks them, or their profile says they are the one to go
+to for it. Present a short table:
+
+| Who | What they need to know | Why them | Where it is recorded |
+|---|---|---|---|
+
+- "Nobody in particular" is a common and correct answer; say it in one line.
+- If everyone needs to know, the item may be a working standard rather than a
+  broadcast — raise it as a promotion question.
+- Point at where the learning now lives rather than restating it.
+- Send nothing. A message to a colleague goes out in the user's own voice, from
+  them; draft one only when asked.
+- If the right person cannot be named, say so — that is a gap in the people
+  directory.
+- Keep the table out of the repository. It is communication, not context.
+
 ## Then close out
 
 Context and tracking are different things — promote learnings first, then
@@ -54,8 +81,8 @@ reconcile state separately:
 
 - Confirm any task or tracking files this project keeps reflect reality.
 - Release any locks or claims this session holds.
-- Briefly summarise what was changed, at which tier, and flag any critical items
-  remaining.
+- Briefly summarise what was changed, at which tier, who needs to know (if that
+  step applied), and flag any critical items remaining.
 
 ## Finally, drop the sentinel
 

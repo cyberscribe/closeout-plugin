@@ -63,6 +63,12 @@ $taxonomy
 
 Promotion into the always-loaded tier is zero-sum: it costs every future session, so name what it displaces or say why the budget should grow. Every other tier is additive and needs no such justification. When the user has confirmed tier and scope, promote with surgical edits — never a full rewrite — then delete the draft file. If a draft holds nothing worth keeping, propose deleting it."
 
+if [[ "${TEAM_COUNT:-0}" -ge 2 ]]; then
+    context="$context
+
+This project names more than one person, so a draft may end with a 'Who needs to know' section. After promoting, present it to the user as a short list to act on, pointing at where each item now lives. Send nothing and keep it out of the repository — it is communication, not context."
+fi
+
 if [[ -f "$CONVENTIONS_FILE" && -z "$CONVENTIONS_DEFINE_TIERS" ]]; then
     context="$context
 

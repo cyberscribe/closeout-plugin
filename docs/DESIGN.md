@@ -147,6 +147,23 @@ table *after* the default one, and the model had to reconcile two tier lists tha
 disagreed; it split the difference roughly half the time. A taxonomy is not
 additive. Either the plugin's applies or the project's does.
 
+## Who needs to know, and why the hook computes the team
+
+A learning promoted into a file nobody knows has changed reaches nobody until
+they happen to open it. So when a project names two or more people, the closeout
+ends with a short "who needs to know" table.
+
+Three choices shape it:
+
+- **The team is computed by the hook, not the child.** The capture child can read
+  only the transcript and write only the draft, so it cannot look at the people
+  directory. `lib/config.sh` resolves the list and passes it in.
+- **It is advice, not delivery.** Nothing is sent. A message to a colleague goes
+  out in a person's own voice; an unattended agent writing to someone's
+  colleagues on exit is the wrong blast radius entirely.
+- **It never reaches the repository.** It is communication — a third axis beside
+  context and tracking — and it goes stale as soon as it is read.
+
 ## Extension via `.claude/closeout.md`
 
 Teams have their own closeout rules — a tracking queue to reconcile, locks to

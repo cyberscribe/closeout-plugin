@@ -25,7 +25,7 @@ closeout_first_existing() {
 # closeout_config <project_dir>
 #
 # Sets: DRAFT_DIR, DOC_DIR, DECISIONS_FILE, TIER_TABLE, CONVENTIONS_FILE,
-#       CONVENTIONS_DEFINE_TIERS
+#       CONVENTIONS_DEFINE_TIERS, TEAM_MEMBERS, TEAM_COUNT
 closeout_config() {
     local project_dir="${1:-$PWD}"
 
@@ -44,6 +44,37 @@ closeout_config() {
     # the plugin's default table is suppressed so the prompts never carry two
     # competing tier lists.
     CONVENTIONS_DEFINE_TIERS=""
+
+    # The people this project names, for the optional "who needs to know" step,
+    # which only applies when there are two or more. An explicit CLOSEOUT_TEAM list
+    # wins. Otherwise: one entry per profile in the people directory (named by file,
+    # README excluded), plus any bullet under a "## Team" heading in the conventions
+    # file. Computed here rather than by the capture child, because the child is
+    # deliberately unable to read the repository.
+    TEAM_MEMBERS=""
+    if [[ -n "${CLOSEOUT_TEAM:-}" ]]; then
+        TEAM_MEMBERS="$(printf '%s' "$CLOSEOUT_TEAM" | tr ',' '\n' | sed 's/^ *//; s/ *$//' | grep -v '^$' || true)"
+    else
+        local people_dir="${CLOSEOUT_PEOPLE_DIR:-}" d
+        if [[ -z "$people_dir" ]]; then
+            for d in memory/people docs/people people; do
+                [[ -d "$project_dir/$d" ]] && { people_dir="$d"; break; }
+            done
+        fi
+        if [[ -n "$people_dir" && -d "$project_dir/$people_dir" ]]; then
+            TEAM_MEMBERS="$(find "$project_dir/$people_dir" -maxdepth 1 -type f -name '*.md' ! -iname 'README.md' \
+                -exec basename {} .md \; 2>/dev/null | sort)"
+        fi
+        if [[ -f "$CONVENTIONS_FILE" ]]; then
+            local listed
+            listed="$(awk 'tolower($0) ~ /^#+[[:space:]]*team[[:space:]]*$/ { f = 1; next }
+                           /^#/ { f = 0 }
+                           f && /^[[:space:]]*[-*][[:space:]]+/ { sub(/^[[:space:]]*[-*][[:space:]]+/, ""); print }' \
+                "$CONVENTIONS_FILE")"
+            TEAM_MEMBERS="$(printf '%s\n%s\n' "$TEAM_MEMBERS" "$listed" | grep -v '^$' | sort -u || true)"
+        fi
+    fi
+    TEAM_COUNT="$(printf '%s' "$TEAM_MEMBERS" | grep -c . || true)"
     if [[ -f "$CONVENTIONS_FILE" ]] &&
        grep -qiE '^#{1,6}[[:space:]]*promotion tiers' "$CONVENTIONS_FILE" 2>/dev/null; then
         CONVENTIONS_DEFINE_TIERS="1"
