@@ -4,7 +4,7 @@
   "//1": "Makes the plugin available to every teammate on clone, with no /plugin commands to run. Swap the source for {\"source\":\"directory\",\"path\":\".claude/plugins/closeout\"} if you vendor it as a git submodule instead.",
   "extraKnownMarketplaces": {
     "closeout-marketplace": {
-      "source": { "source": "github", "repo": "cyberscribe/closeout-plugin" }
+      "source": { "source": "github", "repo": "cyberscribe/agentic-workspace-kit" }
     }
   },
   "enabledPlugins": {

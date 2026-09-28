@@ -7,7 +7,7 @@ It is **not** a replacement for updating docs during real work. It is the net un
 ## Install
 
 ```
-/plugin marketplace add cyberscribe/closeout-plugin
+/plugin marketplace add cyberscribe/agentic-workspace-kit
 /plugin install closeout@closeout-marketplace
 ```
 
@@ -25,7 +25,7 @@ To pin it for a whole team instead, commit this to the repository's
 {
   "extraKnownMarketplaces": {
     "closeout-marketplace": {
-      "source": { "source": "github", "repo": "cyberscribe/closeout-plugin" }
+      "source": { "source": "github", "repo": "cyberscribe/agentic-workspace-kit" }
     }
   },
   "enabledPlugins": { "closeout@closeout-marketplace": true }

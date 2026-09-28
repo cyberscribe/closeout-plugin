@@ -12,7 +12,7 @@
       "description": "A safety net for the end-of-session documentation ritual: /closeout promotes learnings live, and if you forget, a SessionEnd hook captures them into a draft the next session offers to promote.",
       "source": "./",
       "category": "productivity",
-      "homepage": "https://github.com/cyberscribe/closeout-plugin"
+      "homepage": "https://github.com/cyberscribe/agentic-workspace-kit"
     }
   ]
 }
