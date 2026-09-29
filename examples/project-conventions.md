@@ -61,3 +61,15 @@ lines deliberately.
 - Move finished work to DONE and return abandoned work to TODO in the tracker.
 - Release any locks this session holds.
 - Report which tier each promoted item landed in.
+- For anything promoted to standing rules or playbooks, offer an ablation: what
+  task would go worse without it? If there is one, draft `pilot/ablations/<id>.md`
+  in the same commit. If nobody can say, reconsider the tier. Offered, not required.
+
+## Who needs to know
+
+- **Who needs to know:** ask
+
+`ask` offers the step in one line; `auto` presents the table unasked, and `off`
+leaves it out. The team roster, `team/people.md` from the kit's
+`templates/team-roster.md` (or wherever `CLOSEOUT_ROSTER` points), seeds it with
+each person's default relationship and channel, by handle only.

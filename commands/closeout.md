@@ -18,9 +18,8 @@ behaviour a tool's documentation does not mention, a correction to something
 believed before, and a boundary that turned out to matter.
 
 If the user typed anything after the command (it follows this prompt), start from
-it: it is what they most want kept. Where this runs without an end-of-session
-capture behind it — a desktop assistant, or hooks turned off — this pass is the
-whole ritual, so it is worth doing fully.
+it: it is what they most want kept. With no end-of-session capture behind it — a
+desktop assistant, or hooks turned off — this pass is the whole ritual.
 
 ## Conventions come first
 
@@ -31,14 +30,9 @@ below:
    and house rules. If it has a `## Promotion tiers` section, that taxonomy
    replaces the table below entirely: tier names, count, destinations and load
    rates all come from the project.
-2. **The person's own conventions**, `~/.claude/closeout.md`, or the file
-   `CLOSEOUT_USER_CONVENTIONS` names when that is set (an empty value leaves the
-   personal layer out). They apply in every repository this person works in —
-   usually an extra destination or a house rule of their own, sometimes a line
-   they want in the report. They add to the project's; **wherever the two
-   disagree, the project's win.** Where the project says nothing, they stand over
-   the defaults below, including a `## Promotion tiers` section of their own.
-   On a surface with no such file, carry on without it.
+2. **The person's own conventions**, `~/.claude/closeout.md` (or the file
+   `CLOSEOUT_USER_CONVENTIONS` names; empty or missing means none). The project's
+   win where the two disagree; elsewhere these stand over the defaults, tiers too.
 3. **`.claude/projects.md`**, if present — where active projects live, what each
    project's entry point is, any **Section names** aliases (a Done when list
    called something else), and where the verification standard lives.
@@ -57,8 +51,7 @@ Two axes, and the first is the expensive decision.
 | Templates & agent roles | when that role or scaffold is invoked | `.claude/agents/`, `.claude/commands/` |
 
 **Scope** — shared (committed, reaches teammates) or individual (this machine and
-user only, such as `~/.claude/`). A learning a teammate would need is worthless in
-an individual destination, so prefer committed ones.
+user only, such as `~/.claude/`). Prefer committed: a teammate cannot use the other.
 
 Default to the cheapest tier that still works; most things are project reference.
 The always-loaded tier is a budget paid by every future session, not a folder.
@@ -86,79 +79,80 @@ changes what loads every session, any judgement call about voice or framing, and
 any file the repository fences from agent editing. Nothing is deleted: superseded
 material is marked superseded, keeps its wording, and points at what replaced it.
 
+When a line is promoted, or proposed for promotion, to one of the two tiers
+loaded most often (by default working standards and general reference), offer an
+ablation; it is an offer, and a no ends it. Ask what task would go worse without
+the line. If there is one and the repository has `pilot/ablations/`, draft the
+ablation file there — that task as the prompt, a Check, and the lines exactly as
+they will read (format in `pilot/README.md`, or copy a file already in
+`pilot/ablations/`) — staged with the promotion once it is agreed. If nobody can
+name a task, say so plainly: that is evidence about the tier, and the cheaper
+tier is usually the answer.
+
 ## Reconcile tracking — separately, and after
 
 Context and tracking are different axes. Promote learnings first; then make the
-tracking true. Find the project this session worked in — the folder, under where
-active projects live, whose files it touched, or the repository's own README when
+tracking true. Find the project this session worked in — the folder under where
+active projects live whose files it touched, or the repository's own README when
 the repository is the project — and open its entry point.
 
-- **Done when.** Found by its heading, or by an alias in `.claude/projects.md`.
-  Tick what this session completed, and say in a line how far the project is from
-  its finish line ("3 of 5"). A tick is held to the verification standard's row
-  for that kind of work, as `/projects:close` holds it; short of it, leave the
-  box and say in the dated line what is missing.
-- **The Current state block**, when the README has one. Bring it up to date:
-  - `State:` changes only when it plainly moved — to `doing` when work started
-    today, to `blocked` when this session left the work unable to move until
-    something outside it happens, back to `doing` (or `ready`) when a blocker
-    cleared. `paused` and `done` are the person's call: propose them, and leave
-    marking a project done to `/projects:close`. When the state changes and the
-    register has a State column, show the matching one-cell edit and make it on
-    a yes; any folder move `.claude/projects.md` ties to the new state is named,
-    not made.
-  - `Blocked by:` one line — what the work is blocked by and since when, as an
-    absolute date — set when the state moves to `blocked`, and removed when the
-    blocker clears. Suggest it from the session and confirm it with the user.
-  - `Updated:` today's date, absolute.
-  - The dated line that ends the block says in a sentence where the work stands
-    after this session. Add one when the block has none; otherwise rewrite it
-    rather than stacking another, since git keeps the history.
-  - `Check-in:` and any **Planned** list stay as they are unless the user asks.
-  - Keep the labels as the file writes them, bold or plain. A
-    `proposed by /projects:adopt` marker stays where it is: confirming a proposal
-    is the person's.
-- **No Current state block or Done when?** Leave the README's shape alone and
-  mention `/projects:adopt`, which adds the missing sections. A README still
-  carrying an older Now block is left as it is: mention that `/projects:adopt`
-  offers the conversion.
-- **Every box ticked?** Say the project has reached its finish line and suggest
-  `/projects:close <slug>`, which walks the evidence and the retrospective. The
-  closeout does not mark a project done itself.
-- Confirm any other task or status files reflect reality, and release any locks or
+- **Done when** (by its heading, or an alias in `.claude/projects.md`): tick what
+  this session completed and say how far the project is from its finish line
+  ("3 of 5"). A tick meets the verification standard's row for that kind of work,
+  as `/projects:close` holds it; short of it, leave the box and say in the dated
+  line what is missing.
+- **Current state**, when the README has one, as the project template
+  (`templates/project-readme.md`) defines it.
+  Move `State:` only when the session plainly moved it — to `doing`, to `blocked`,
+  or back once a blocker cleared; propose `paused`, and leave `done` to
+  `/projects:close`. Set or clear `Blocked by:` with the user, dated. Set
+  `Updated:` to today and rewrite the dated line (add one if absent) to say where
+  the work stands.
+  The rest of the block — `Check-in:`, **Planned**, label style, a
+  `proposed by /projects:adopt` marker — stays as it is. A state change shows the
+  register's one-cell edit, made on a yes; a folder move tied to it is named, not
+  made.
+- **No Current state block or Done when, or an older Now block?** Leave the
+  README's shape alone and mention `/projects:adopt`.
+- **Every box ticked?** Say so and suggest `/projects:close <slug>`.
+- Confirm other task or status files reflect reality, and release any locks or
   claims this session holds.
 
-## Who needs to know — when the project names two or more people
+## Who needs to know — when two or more people are known
 
-This step applies when the project names two or more people: a People section in
-its README, profiles in the people directory (`memory/people/`, `docs/people/` or
-`people/`, or where `.claude/projects.md` says), a `## Team` section in
-`.claude/closeout.md`, or a `CLOSEOUT_TEAM` list in the environment. With one
-person or none, skip it without comment.
+`Who needs to know:` in `.claude/closeout.md` is `auto` (the default), `ask` or
+`off`; the same line in a project README's People section overrides it. `off`
+skips this step; `ask` offers it in one line and goes on only on a yes.
 
-Promotion decides where a learning is kept; this decides who should hear about it
-now. When the README's People section gives roles, let them choose:
+People are named in the README's People section, the team roster (`team/people.md`),
+the people directory (`memory/people/`, `docs/people/`, `people/`, or where
+`.claude/projects.md` says), a `## Team` section in `.claude/closeout.md`, or
+`CLOSEOUT_TEAM`. The project's roles win over the roster's; the roster adds anyone
+else whose default relationship, scoped or not, matches what changed. With one
+person or none, skip this without comment. Where the People section gives roles:
 
-- **owns** and **keep told** hear about the outcome — a Done when item ticked, the
-  finish line reached or moved, ownership changing, the project now blocked.
-- **ask first** hear about decisions not yet taken — anything this closeout left
-  as a proposal, and any Done when item someone wants to change or waive — before
-  the decision, not after it.
-- **does** and **helps** hear where their work is affected: a decision changes
-  what they are doing, it blocks or unblocks them, or work passes to them.
+- **owns**, **keep told**: the outcome — a box ticked, the finish line moved,
+  ownership changed, a block.
+- **ask first**: this closeout's proposals, a Done when change or waiver — before,
+  not after.
+- **does**, **helps**: work of theirs changed, blocked, unblocked or passed to them.
 
-Without roles, name a person only where their work is affected in one of those
-ways, or their profile says they are the one to go to for it. Present a short
-table:
+Without roles, name only those whose work is affected so, or whose profile makes
+them the one to go to. Present a short table. **How** is their channel, from the
+roster or the project; **Offer** is `draft` (a short message in the user's voice),
+`note` (a line for the next team meeting or one-to-one) or `none`, picked per
+row. Drafts are shown here; with a mail or chat tool connected, at most a draft
+there, on an explicit yes.
 
-| Who | What they need to know | Why them | Where it is recorded |
-|---|---|---|---|
-| <name> | <one line> | <owns / keep told / ask first / blocked by…> | `<path>` |
+| Who | What they need to know | Why them | How | Offer | Where it is recorded |
+|---|---|---|---|---|---|
+| <name> | <one line> | <owns / keep told / ask first / blocked by…> | <channel> | draft · note · none | `<path>` |
 
 ## Report
 
 - What was promoted, and at which tier.
 - What is proposed and still needs a decision.
+- Any ablation offered: drafted, declined, or the tier reconsidered.
 - Tracking, reported apart from the learnings: boxes ticked, how far from the
   finish line, and the Current state block's new state, blocker and date.
 - Who needs to know what, if that step applied.
@@ -166,18 +160,16 @@ table:
 - Which files were touched, new against modified, and anything left unfinished.
 - Any line the personal conventions ask for.
 
-Leave the commit to the user. Your part is to stage what you touched, by name,
-and summarise the change; they write the message, as their check that they
-understand it. A broad staging command sweeps unrelated in-flight work into it.
+Leave the commit to the user: stage what you touched, by name (a broad staging
+command sweeps in unrelated work), and summarise it; they write the message.
 
 ## Finally, drop the sentinel
 
-Once all of the above is genuinely done, tell the end-of-session capture hook that
-this session has been closed out, so it does not write a redundant draft on top
-of the work just promoted. The hook runs only in Claude Code with this plugin, and
-there `CLAUDE_CODE_SESSION_ID` is set; anywhere else the step does nothing, and
-nothing else depends on it. This is the only file outside the repository this
-command touches:
+Once all of the above is done, tell the end-of-session capture hook that this
+session was closed out, so it writes no redundant draft. Only Claude Code with
+this plugin sets `CLAUDE_CODE_SESSION_ID`; elsewhere this does nothing. It is the
+one file outside the repository this command touches (the handshake is explained
+in the plugin's `docs/DESIGN.md`):
 
 ```bash
 if [ -n "${CLAUDE_CODE_SESSION_ID:-}" ]; then
@@ -186,28 +178,18 @@ if [ -n "${CLAUDE_CODE_SESSION_ID:-}" ]; then
 fi
 ```
 
-The capture hook consumes the sentinel matching this session's id: it skips its
-capture once and deletes the file. Keying by session means a closeout here
-silences only this session's capture; concurrent or worktree sessions in the same
-project keep their safety net. The sentinel switches that net off, so it follows a
-closeout that actually happened.
-
 ## Practices
 
-- **Cheapest tier first.** The always-loaded file is paid for by every session;
-  a line there has to earn its place against the line it displaces.
 - **Point rather than restate.** One copy of a fact, and pointers to it, is how a
   record stays true.
 - **An honest state beats a hopeful one.** A project marked `blocked`, with what
   blocks it, is visible to the board; one left at `doing` while nothing can
   move is not.
-- **Send nothing.** A message to a colleague goes out in the user's own voice,
-  from them; draft one only when asked. "Nobody in particular" is a common and
-  correct answer. If everyone needs to know, the item may be a working standard
-  rather than a broadcast — raise it as a promotion question. If the right person
-  cannot be named, say so: that is a gap in the people directory.
-- **Keep communication out of the repository.** The who-needs-to-know table is
-  stale the moment it has been read.
+- **Send nothing, and commit no table: it is stale once read.** A message goes out
+  in the user's own voice, from them; draft one only when asked. "Nobody in
+  particular" is often right; if everyone needs to know, it may be a working
+  standard: raise it as a promotion; if nobody can be named, that is a gap in the
+  people directory.
 - **Keep the axes apart.** Learnings are promoted, tracking is reconciled, and
   who-needs-to-know is suggested. Reported together, the ritual decays into a
   status update.

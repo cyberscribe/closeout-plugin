@@ -134,6 +134,25 @@ The agent is also told to default to the cheapest tier that works. The bias has 
 be explicit, because "put it where it will definitely be seen" is the locally
 rational choice every time.
 
+## Ablations, offered at promotion
+
+The budget rule stops the always-loaded tier growing unexamined; it does nothing
+about a line already in it. A line promoted there is never retired unless
+something tests it. So when a line lands in either of the two most-loaded tiers,
+`/closeout` asks what task would go worse without it, and where the repository
+runs ablations it drafts one: that task as a prompt, a Check, and the exact lines
+just promoted, which a runner later removes to compare a session with the line
+against one without it. The question is asked at promotion because that is the
+only moment someone knows what the line was for.
+
+It is offered, not required. Required is the stronger discipline, but it adds a
+step to every closeout at the point a new team decides whether the ritual is
+worth its weight. The offer still does work when it is declined: a person who
+cannot name a task that would go worse has said something about the tier, and
+the command says so. An ablation tests only what its author thought the line was
+for, the same limit a unit test has, and a no-difference result proposes a
+demotion; it never makes one.
+
 ## Two levels of override, and why not a schema
 
 Teams disagree about tiers. Some want three, some want six, some already have a
@@ -174,6 +193,26 @@ Three choices shape it:
   colleagues on exit is the wrong blast radius entirely.
 - **It never reaches the repository.** It is communication — a third axis beside
   context and tracking — and it goes stale as soon as it is read.
+- **It is optional, set once.** `Who needs to know: auto | ask | off` in the
+  conventions file, overridable per project in the README's People section. Some
+  teams hear everything in a regular meeting and want no table; the setting says so once
+  rather than having the step skipped by hand every session. The hooks read only
+  the repository's setting: under `off` they say nothing, and a README override is
+  applied by `/closeout`, which reads the project's README.
+- **The hooks count the repository, the prompt decides the project.** A hook
+  cannot tell which project a session worked in or what changed, so it counts
+  everyone the repository knows — the roster included — and hands the per-project
+  condition (two or more for this project, or a scoped match) to the prompt.
+- **A roster seeds it, and the project wins.** `team/people.md` gives each person
+  a default relationship and a channel, so the step can name the measurement lead
+  for a measurement change on a project that forgot to list them. The project's
+  own People section overrides it, because who is on a project is the project's to
+  say. The roster holds handles only: the hook drops any cell that looks like an
+  email address or phone number before it reaches a prompt, since the repository
+  is shared and contact details belong to the person.
+- **Offers, not messages.** Each row offers a draft, a note for the next team
+  meeting, or none. A connected mail or chat tool changes only where a draft can
+  be left, on an explicit yes; it never changes who presses send.
 
 ## Extension via `.claude/closeout.md`
 
@@ -228,8 +267,9 @@ unattended is tracking nobody trusts.
 
 **No drafts ever appear.**
 
-1. Confirm the hooks are approved — `/hooks` lists what is active. An unapproved
-   plugin's hooks silently never run.
+1. Confirm the plugin is installed and enabled, in a folder Claude Code trusts —
+   `/hooks` lists what is active. A plugin's hooks come with it and need no
+   approval of their own; they run only while the plugin is enabled.
 2. Confirm `jq` and `claude` resolve in a minimal environment:
    `env -i bash -c 'command -v jq claude'`. If `claude` is missing, set
    `CLOSEOUT_CLAUDE_BIN`.

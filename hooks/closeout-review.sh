@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck source-path=SCRIPTDIR
 # SessionStart review pointer for the closeout ritual.
 #
 # Companion to closeout-capture.sh. When a new session starts in this project,
@@ -110,10 +111,28 @@ elif [[ -n "$USER_CONVENTIONS_FILE" && -f "$CONVENTIONS_FILE" ]]; then
 The project's own conventions still win over the user's file wherever the two disagree."
 fi
 
-if [[ "${TEAM_COUNT:-0}" -ge 2 ]]; then
+# Who needs to know, as the conventions set it: auto presents the table, ask
+# offers it in one line, off leaves it out. A project README's own setting, in its
+# People section, overrides this one for that project when it is auto or ask; under
+# a repository-level off this hook says nothing, so on the hook path off is final
+# and the README override is applied by /closeout, which reads the README.
+if [[ "${TEAM_COUNT:-0}" -ge 2 && "$WHO_NEEDS_TO_KNOW" != "off" ]]; then
+    if [[ "$WHO_NEEDS_TO_KNOW" == "ask" ]]; then
+        wntk="After promoting, offer the step in one line — who needs to know? — and present the table only on a yes."
+    else
+        wntk="After promoting, present it to the user as the short who / what / why table, pointing at where each item now lives."
+    fi
     context="$context
 
-This project names more than one person, so a draft may end with a 'Who needs to know' section. After promoting, present it to the user as the short who / what / why table, pointing at where each item now lives. Send nothing and keep it out of the repository — it is communication, not context."
+People are known for this repository, from the project, the people directory or the team roster, so a draft may end with a 'Who needs to know' section. Take the step only when two or more are known for this project — named in its README's People section, or matching the change by a scoped roster relationship — and otherwise skip it without comment. $wntk The table carries How (their channel, from the project or the team roster) and Offer (draft, note or none), which the user picks per row. Drafts are shown here, never sent and never committed; keep the table out of the repository too — it is communication, not context. If the project's README sets its own 'Who needs to know:' line in its People section, that setting applies instead."
+fi
+
+# A roster cell holding an email address or phone number never reaches a prompt;
+# the person closing out hears about it so it can be taken out of the repository.
+if [[ -n "$ROSTER_REJECTED" ]]; then
+    context="$context
+
+The team roster (${ROSTER_FILE#"$project_dir"/}) has an email address or phone number in the row for: ${ROSTER_REJECTED//,/, }. The roster keeps names, channels and handles only; mention it and offer to take the detail out."
 fi
 
 jq -nc --arg c "$context" \

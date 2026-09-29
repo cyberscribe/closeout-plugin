@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# The variables set here are read by the hooks that source this file.
+# shellcheck disable=SC2034
 # Shared configuration resolution for the closeout hooks.
 #
 # Sourced by closeout-capture.sh and closeout-review.sh. Both hooks must agree on
@@ -31,7 +33,8 @@ closeout_first_existing() {
 #
 # Sets: DRAFT_DIR, DOC_DIR, DECISIONS_FILE, TIER_TABLE, CONVENTIONS_FILE,
 #       USER_CONVENTIONS_FILE, CONVENTIONS_DEFINE_TIERS, TIERS_FILE,
-#       TEAM_MEMBERS, TEAM_COUNT
+#       TEAM_MEMBERS, TEAM_COUNT, WHO_NEEDS_TO_KNOW, ROSTER_FILE, ROSTER_ROWS,
+#       ROSTER_REJECTED
 closeout_config() {
     local project_dir="${1:-$PWD}"
 
@@ -65,9 +68,69 @@ closeout_config() {
     # The people this project names, for the optional "who needs to know" step,
     # which only applies when there are two or more. An explicit CLOSEOUT_TEAM list
     # wins. Otherwise: one entry per profile in the people directory (named by file,
-    # README excluded), plus any bullet under a "## Team" heading in the conventions
-    # file. Computed here rather than by the capture child, because the child is
+    # README excluded), any bullet under a "## Team" heading in the conventions
+    # file, and everyone on the team roster. Computed here rather than by the capture child, because the child is
     # deliberately unable to read the repository.
+    #
+    # The "Who needs to know: auto | ask | off" line sets the step: the project's
+    # conventions first, then the person's own, else auto. A project README can
+    # override it in its People section; the hooks cannot tell which project a
+    # session worked in, so that override is the /closeout command's to apply.
+    WHO_NEEDS_TO_KNOW=""
+    local f
+    for f in "$CONVENTIONS_FILE" "$USER_CONVENTIONS_FILE"; do
+        [[ -n "$f" && -f "$f" ]] || continue
+        # shellcheck disable=SC2016 # the backquotes are literal: a value may be written as `ask`
+        WHO_NEEDS_TO_KNOW="$(sed -nE 's/^[[:space:]]*([-*][[:space:]]+)?(\*\*)?[Ww]ho needs to know:(\*\*)?[[:space:]]*`?(auto|ask|off)`?([^[:alnum:]].*)?$/\4/p' "$f" | head -n 1)"
+        [[ -n "$WHO_NEEDS_TO_KNOW" ]] && break
+    done
+    WHO_NEEDS_TO_KNOW="${WHO_NEEDS_TO_KNOW:-auto}"
+
+    # The team roster (templates/team-roster.md): one table row per person, with
+    # a default relationship, a channel and a handle. Names are folded to the
+    # people directory's file naming (lowercase, hyphens) so one person counted
+    # from both is counted once. A cell carrying an email address or a phone
+    # number is kept out of every prompt, and its person named in ROSTER_REJECTED:
+    # contact details belong in a profile or an address book, not the repository.
+    ROSTER_FILE="${CLOSEOUT_ROSTER-team/people.md}"
+    [[ -n "$ROSTER_FILE" && "$ROSTER_FILE" != /* ]] && ROSTER_FILE="$project_dir/$ROSTER_FILE"
+    # An explicit CLOSEOUT_TEAM wins outright, so the roster is then left unread.
+    [[ -n "$ROSTER_FILE" && -f "$ROSTER_FILE" && -z "${CLOSEOUT_TEAM:-}" ]] || ROSTER_FILE=""
+    ROSTER_ROWS="" ROSTER_REJECTED=""
+    if [[ -n "$ROSTER_FILE" ]]; then
+        # Output per row: slug|default relationship|channel|handle|flag (flag 1 when
+        # a contact detail was removed from the row). A row whose Name cell holds a
+        # contact detail is left out and named by its line number ("line N").
+        local parsed
+        parsed="$(awk -F'|' '
+            function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+            # An email address in any cell; seven or more digits in one run of phone
+            # characters only in the Channel and Handle cells, where a number would be
+            # a contact (a figure in Role or Default relationship is not one). A date
+            # written YYYY-MM-DD is taken out first, so it never reads as a number.
+            function email(s) { return s ~ /[[:alnum:]._%+-]+@[[:alnum:]-]+(\.[[:alnum:]-]+)*\.[[:alpha:]][[:alpha:]]+/ }
+            function phone(s,   t, d, n, part, i) {
+                t = s; gsub(/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]/, "|", t)
+                gsub(/[^0-9+(). -]/, "|", t); n = split(t, part, "|")
+                for (i = 1; i <= n; i++) { d = part[i]; gsub(/[^0-9]/, "", d); if (length(d) >= 7) return 1 }
+                return 0
+            }
+            /^[[:space:]]*\|/ {
+                name = trim($2)
+                if (name == "" || tolower(name) == "name" || name ~ /^:?-+:?$/ || name ~ /^</) next
+                if (email(name) || phone(name)) { print "line " NR "||||1"; next }
+                flag = 0
+                for (c = 3; c <= 6; c++) {
+                    v[c] = trim($c)
+                    if (email(v[c]) || (c >= 5 && phone(v[c]))) { v[c] = ""; flag = 1 }
+                }
+                slug = tolower(name); gsub(/[^[:alnum:]]+/, "-", slug); gsub(/^-+|-+$/, "", slug)
+                print slug "|" v[4] "|" v[5] "|" v[6] "|" flag
+            }' "$ROSTER_FILE")"
+        ROSTER_ROWS="$(printf '%s\n' "$parsed" | grep -v '^$' | grep -v '^line [0-9]' | cut -d'|' -f1-4 || true)"
+        ROSTER_REJECTED="$(printf '%s\n' "$parsed" | awk -F'|' '$5 == 1 { print $1 }' | paste -sd, - || true)"
+    fi
+
     TEAM_MEMBERS=""
     if [[ -n "${CLOSEOUT_TEAM:-}" ]]; then
         TEAM_MEMBERS="$(printf '%s' "$CLOSEOUT_TEAM" | tr ',' '\n' | sed 's/^ *//; s/ *$//' | grep -v '^$' || true)"
@@ -89,6 +152,9 @@ closeout_config() {
                            f && /^[[:space:]]*[-*][[:space:]]+/ { sub(/^[[:space:]]*[-*][[:space:]]+/, ""); print }' \
                 "$CONVENTIONS_FILE")"
             TEAM_MEMBERS="$(printf '%s\n%s\n' "$TEAM_MEMBERS" "$listed" | grep -v '^$' | sort -u || true)"
+        fi
+        if [[ -n "$ROSTER_ROWS" ]]; then
+            TEAM_MEMBERS="$(printf '%s\n%s\n' "$TEAM_MEMBERS" "$(printf '%s\n' "$ROSTER_ROWS" | cut -d'|' -f1)" | grep -v '^$' | sort -u || true)"
         fi
     fi
     TEAM_COUNT="$(printf '%s' "$TEAM_MEMBERS" | grep -c . || true)"

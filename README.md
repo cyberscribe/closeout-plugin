@@ -58,8 +58,9 @@ directory rather than GitHub:
 That pins the exact commit in your repo's history and needs no network at
 install time, at the cost of a `git submodule update --init` on clone.
 
-Claude Code gates hooks behind a trust prompt. **Approve them once when asked** —
-if you don't, the hooks silently never run and you get `/closeout` only.
+The hooks come with the plugin: there is no separate approval for them. They run
+once the plugin is installed and enabled in a folder Claude Code trusts; until
+then you get `/closeout` only. `/hooks` lists what is active.
 
 ## How it works
 
@@ -68,7 +69,7 @@ if you don't, the hooks silently never run and you get `/closeout` only.
 | `/closeout` command | A saved prompt. Type it before ending a session and the agent reviews learnings and updates durable docs **live, with full context** — the highest-quality path — then reconciles the project's tracking: ticks its Done when list and brings its Current state block up to date — state, blocker, date and a dated line. |
 | Capture hook (`SessionEnd`) | Spawns a **detached, tool-restricted** headless `claude -p` that reads the just-ended transcript and writes candidate notes to a draft file outside the repo. The automatic backstop. |
 | Review hook (`SessionStart`) | If drafts exist, injects a reminder instructing the agent to surface them first-thing and offer to promote — confirm the proposed tier, verify each claim against current code, then promote and delete the draft, only with your go-ahead. Never silently. |
-| Who needs to know | *Optional.* When the project names two or more people, `/closeout` and the capture draft end with a short table of who should hear about what, and why them. Nothing is sent; see below. |
+| Who needs to know | *Optional.* When two or more people are known for the project, `/closeout` and the capture draft end with a short table of who should hear about what, why them, how, and what to offer. `auto`, `ask` or `off`. Nothing is sent; see below. |
 
 ```
 session ends ──▶ SessionEnd ──▶ closeout-capture.sh
@@ -148,6 +149,13 @@ zero-sum, and must name what it displaces or justify the budget growing. Every
 other tier is additive. That rule is the point of the taxonomy: without it an
 always-on file grows monotonically and every future session pays for it.
 
+For a promotion to either of the top two tiers, `/closeout` also offers an
+ablation: it asks what task would go worse without the line and, where the
+repository keeps `pilot/ablations/`, drafts a test that runs that task with the
+line and without it. The offer can be declined. If nobody can name such a task,
+the command says that is evidence about the tier. The reasoning is in
+[`docs/DESIGN.md`](docs/DESIGN.md).
+
 ### Overriding it
 
 Two levels, depending on how much you want to change.
@@ -204,17 +212,33 @@ file, or, set to an empty value, leaves the personal layer out.
 | `CLOSEOUT_CLAUDE_BIN` | auto-detected | Explicit path to the `claude` binary. |
 | `CLOSEOUT_TEAM` | unset | Comma-separated names. Overrides team detection for the "who needs to know" step. |
 | `CLOSEOUT_PEOPLE_DIR` | first of `memory/people`, `docs/people`, `people` | Where one-file-per-person profiles live. |
+| `CLOSEOUT_ROSTER` | `team/people.md` | The team roster, repo-relative or absolute. Empty leaves it out. |
 | `CLOSEOUT_USER_CONVENTIONS` | `~/.claude/closeout.md` | Your personal conventions file. Empty leaves the personal layer out. |
 
 ### Who needs to know
 
 Promotion decides where a learning is kept; this step decides who should hear
-about it now. It switches on by itself when the project names two or more people:
-one profile per person in the people directory (README excluded), bullets under a
-`## Team` heading in `.claude/closeout.md`, or an explicit `CLOSEOUT_TEAM`; the
-`/closeout` command also counts a People section in the project README. With one
-person or none it stays out of the way. The personal conventions file never adds
-people: who is on a project is the project's to say.
+about it now. It switches on by itself when two or more people are known: one
+profile per person in the people directory (README excluded), everyone on the team
+roster, bullets under a `## Team` heading in `.claude/closeout.md`, or an explicit
+`CLOSEOUT_TEAM` (which then stands alone); the `/closeout` command also counts a
+People section in the project README. With one person or none it stays out of the
+way. The personal conventions file never adds people: who is on a project is the
+project's to say.
+
+A line `Who needs to know: auto | ask | off` in `.claude/closeout.md` (or, failing
+that, your personal file) sets it: `auto` is the default, `ask` offers the table in
+one line, `off` leaves it out. The same line in a project README's People section
+overrides it for that project; `/closeout` applies that, since the hooks cannot
+tell which project a session worked in.
+
+The team roster, `team/people.md` from the kit's `templates/team-roster.md`, has
+one row per person: name, role, default relationship (one of the five roles below,
+optionally scoped, as in `keep told: anything touching measurement`), channel and
+handle. A project's People section wins over it; the roster adds anyone else whose
+default relationship matches what changed. It holds handles only: a cell with an
+email address or phone number is left out of every prompt, and the next session is
+told so.
 
 Where the README's People section gives roles (owns · does · helps · ask first ·
 keep told), `/closeout` uses them: whoever owns the outcome or is to be kept told
@@ -222,9 +246,12 @@ hears about progress on it; whoever is to be asked first hears about decisions n
 yet taken, before they are taken; whoever does or helps hears where their own
 work is affected.
 
-The output is a table — who, what, why them, and where it is recorded — and it is
-advice, not delivery. Nothing is sent: a message to a colleague goes out in a
-person's own voice. The table is kept out of the repository too, because it is
+The output is a table — who, what, why them, how they hear, what to offer, and
+where it is recorded — and it is advice, not delivery. The offer is `draft` (a
+short message, shown inline), `note` (a line for the next team meeting or one-to-one)
+or `none`, picked per row. Nothing is sent: a message to a colleague goes out in a
+person's own voice, and with a mail or chat tool connected the most `/closeout`
+does is leave a draft there, on an explicit yes. The table is kept out of the repository too, because it is
 communication rather than context and it is stale the moment it has been read.
 
 ## Dependencies
