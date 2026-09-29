@@ -66,18 +66,18 @@ The child is an unattended agent run triggered by exiting a session. That deserv
 tight bounds:
 
 - `--allowedTools "Read,Write"` — no Bash, no network.
-- It runs from the draft directory, so the repository is outside its reach.
-  `--add-dir` adds to the working directory rather than restricting it; spawned
-  from the project, the child could write anywhere in the repo, and the bound
-  would be prompt-enforced only.
+- It runs from the draft directory, so writes to the repository fall outside the
+  directories `acceptEdits` approves unprompted, and a headless run has nobody to
+  approve them. `--add-dir` adds to the working directory rather than
+  restricting it; spawned from the project, the whole repo would be approved.
 - The transcript's directory is the one grant beyond the draft directory. It
   holds the project's other transcripts and, for Claude Code, its `memory/`
   folder; the child is prompted to write only its scratch file, and that part of
   the bound is prompt-enforced.
 - The review hook exits at once inside the child (`CLOSEOUT_HOOK_CHILD`), so the
   child is never told to surface drafts to a user it does not have.
-- Prompted explicitly to write only the scratch file, never in-repo docs.
-- `--permission-mode acceptEdits` — safe only *because* of the two bounds above.
+- `--permission-mode acceptEdits` — scoped by the working directory above; the
+  transcript-directory write is prompt-enforced.
 
 Promotion into real documentation happens later, interactively, with a human
 approving. The unattended half of the system can only ever produce a file in a
@@ -167,9 +167,8 @@ ends with a short "who needs to know" table.
 
 Three choices shape it:
 
-- **The team is computed by the hook, not the child.** The capture child can read
-  only the transcript and write only the draft, so it cannot look at the people
-  directory. `lib/config.sh` resolves the list and passes it in.
+- **The team is computed by the hook, not the child.** The capture child runs from the
+  draft directory and cannot see the repository's people directory from there. `lib/config.sh` resolves the list and passes it in.
 - **It is advice, not delivery.** Nothing is sent. A message to a colleague goes
   out in a person's own voice; an unattended agent writing to someone's
   colleagues on exit is the wrong blast radius entirely.
@@ -186,6 +185,42 @@ Instead, an optional `.claude/closeout.md` in the consuming project is read
 verbatim by both the command and the capture prompt. Prose in, prose out. It costs
 one file check and covers arbitrary conventions — including replacing the
 promotion taxonomy outright, as above.
+
+## A personal layer, and why the project wins
+
+Some conventions belong to a person rather than a team: a destination only they
+use (learnings about a tool they maintain, routed to its own repository), a line
+they want in every report. Written into each project's `.claude/closeout.md`, they
+would leak one person's habits into every team they work with. So there is a
+second file, `~/.claude/closeout.md`, read by the command, appended to the capture
+prompt and named in the review reminder.
+
+Precedence is project, then person, then plugin defaults. The project wins because
+it is shared: a teammate closing out in the same repository must get the same
+answer about where a learning goes, and a personal file they cannot see must not
+change that. The personal file still outranks the defaults, because the defaults
+are only a guess made without knowing either. Tiers follow the same order: a
+personal `## Promotion tiers` section replaces the default table only in projects
+that define no tiers of their own. Team detection ignores the personal file —
+who is on a project is the project's to say.
+
+The capture child sees both files as text in one prompt, with no way to tell which
+came from where, so the prompt says the precedence in words rather than relying on
+order alone. `CLOSEOUT_USER_CONVENTIONS` exists so the tests, and anyone
+debugging, can point the hooks at a known file or at none.
+
+## Tracking, reconciled after the learnings
+
+`/closeout` ends by bringing the project's tracking up to date — ticking its Done
+when list and refreshing the Now block's date, next action, waiting-on lines and
+state. It is a separate step, reported separately, because context and tracking
+are different axes: merged, the closeout becomes a status update and the learnings
+stop being recorded. Tracking is reconciled but never invented. A next action
+nobody can name is written as the honest gap `none found — decide at the next
+review`, which the projects board flags, and adding a missing Now block or marking
+a project done are left to the projects commands that own them. The capture child
+does none of this: it cannot read the repository, and tracking changed
+unattended is tracking nobody trusts.
 
 ## Troubleshooting
 

@@ -1,5 +1,4 @@
 {
-  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "closeout-marketplace",
   "description": "Single-plugin marketplace hosting the closeout documentation safety net.",
   "owner": {
@@ -9,11 +8,10 @@
   "plugins": [
     {
       "name": "closeout",
-      "description": "A safety net for the end-of-session documentation ritual: /closeout promotes learnings live, and if you forget, a SessionEnd hook captures them into a draft the next session offers to promote.",
+      "description": "A safety net for the end-of-session documentation ritual: /closeout promotes learnings live and brings the project's Now block and Done when list up to date, and if you forget, a SessionEnd hook captures the learnings into a draft the next session offers to promote.",
       "source": "./",
       "category": "productivity",
-      "homepage": "https://github.com/cyberscribe/closeout-plugin",
-      "version": "1.1.1"
+      "homepage": "https://github.com/cyberscribe/closeout-plugin"
     }
   ]
 }

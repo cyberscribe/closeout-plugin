@@ -12,6 +12,11 @@
 
 set -euo pipefail
 
+# Read the hook input before any early exit. A hook that exits with stdin unread
+# can leave the writer holding a closed pipe (SIGPIPE, exit 141), which reads as a
+# failed hook rather than a silent one.
+input="$(cat)"
+
 [[ "${CLOSEOUT_DISABLED:-}" == "1" ]] && exit 0
 
 # The capture child is itself a session, so this hook fires inside it too. It has
@@ -24,7 +29,6 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/config.sh"
 
 command -v jq >/dev/null 2>&1 || exit 0
 
-input="$(cat)"
 cwd="$(printf '%s' "$input" | jq -r '.cwd // empty')"
 project_dir="${cwd:-$PWD}"
 
@@ -67,8 +71,10 @@ done
 
 list="$(printf '  - %s\n' "${drafts[@]}")"
 
-if [[ -n "$CONVENTIONS_DEFINE_TIERS" ]]; then
+if [[ "$CONVENTIONS_DEFINE_TIERS" == "project" ]]; then
     taxonomy="This project defines its own promotion tiers in ${CONVENTIONS_FILE#"$project_dir"/} — read that file and use exactly those tiers and destinations."
+elif [[ "$CONVENTIONS_DEFINE_TIERS" == "user" ]]; then
+    taxonomy="The user's own closeout conventions in $USER_CONVENTIONS_FILE define the promotion tiers — read that file and use exactly those tiers and destinations."
 else
     taxonomy="The tiers and their destinations:
 
@@ -77,9 +83,9 @@ fi
 
 context="A prior session left ${#drafts[@]} closeout draft(s) capturing learnings that were never promoted:
 $list
-At the start of this session, before other work, proactively surface these to the user in your first response and offer to promote them. Do NOT silently promote or delete — wait for the user's go-ahead.
+At the start of this session, before other work, proactively surface these to the user in your first response and offer to promote them. Surface them and wait for the user's go-ahead before promoting or deleting any.
 
-These drafts are written by an automated capture step and CAN BE STALE OR WRONG. Before promoting any technical claim, verify it against the CURRENT code — a bug a draft describes may already have been fixed, and you must not document something that no longer exists.
+These drafts come from an automated capture step and may be stale or wrong. Check each technical claim against the code as it is now before promoting it: a bug a draft describes may already have been fixed, and the docs describe only what still exists.
 
 Each item carries a proposed tier and scope. The tier is the expensive half of the decision, because it sets how often that item is loaded back into context for every future session. Treat the draft's tier as a proposal to confirm with the user, not a decision already made.
 
@@ -87,10 +93,21 @@ $taxonomy
 
 Promotion into the always-loaded tier is zero-sum: it costs every future session, so name what it displaces or say why the budget should grow. Every other tier is additive and needs no such justification. When the user has confirmed tier and scope, promote with surgical edits — never a full rewrite — then delete the draft file. If a draft holds nothing worth keeping, propose deleting it."
 
-if [[ -f "$CONVENTIONS_FILE" && -z "$CONVENTIONS_DEFINE_TIERS" ]]; then
+if [[ -f "$CONVENTIONS_FILE" && "$CONVENTIONS_DEFINE_TIERS" != "project" ]]; then
     context="$context
 
 This project also defines its own closeout conventions in ${CONVENTIONS_FILE#"$project_dir"/} — read that file before promoting anything."
+fi
+
+# The personal layer: read after the project's, which wins where they disagree.
+if [[ -n "$USER_CONVENTIONS_FILE" && "$CONVENTIONS_DEFINE_TIERS" != "user" ]]; then
+    context="$context
+
+The user also keeps personal closeout conventions in $USER_CONVENTIONS_FILE, which apply in every repository — read them after the project's; where the two disagree, the project's win."
+elif [[ -n "$USER_CONVENTIONS_FILE" && -f "$CONVENTIONS_FILE" ]]; then
+    context="$context
+
+The project's own conventions still win over the user's file wherever the two disagree."
 fi
 
 if [[ "${TEAM_COUNT:-0}" -ge 2 ]]; then

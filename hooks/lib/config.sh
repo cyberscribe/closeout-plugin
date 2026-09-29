@@ -9,6 +9,11 @@
 # plugin user can inject configuration a hook will see). The taxonomy itself — the
 # tier names, how many there are, what each one means — is replaced wholesale by a
 # "## Promotion tiers" section in the project's .claude/closeout.md.
+#
+# Conventions come in two layers, read in this order: the project's
+# .claude/closeout.md, then the person's own ~/.claude/closeout.md. The project's
+# wins wherever the two disagree; the personal file fills in where the project is
+# silent, and both override the plugin's defaults.
 
 # closeout_first_existing <project_dir> <candidate>...
 # Echoes the first candidate that exists, or the first candidate if none do, so a
@@ -25,7 +30,8 @@ closeout_first_existing() {
 # closeout_config <project_dir>
 #
 # Sets: DRAFT_DIR, DOC_DIR, DECISIONS_FILE, TIER_TABLE, CONVENTIONS_FILE,
-#       CONVENTIONS_DEFINE_TIERS, TEAM_MEMBERS, TEAM_COUNT
+#       USER_CONVENTIONS_FILE, CONVENTIONS_DEFINE_TIERS, TIERS_FILE,
+#       TEAM_MEMBERS, TEAM_COUNT
 closeout_config() {
     local project_dir="${1:-$PWD}"
 
@@ -39,11 +45,22 @@ closeout_config() {
     # extension point — no config schema to learn.
     CONVENTIONS_FILE="$project_dir/.claude/closeout.md"
 
-    # A project may replace the whole taxonomy rather than just move destinations,
-    # by giving its conventions file a "## Promotion tiers" section. When it does,
-    # the plugin's default table is suppressed so the prompts never carry two
-    # competing tier lists.
+    # The person's own conventions, above every repository they work in: an extra
+    # destination or house rule of theirs. Empty when there is no such file.
+    # CLOSEOUT_USER_CONVENTIONS names another path; set to an empty value, it
+    # leaves the personal layer out (tests use that to stay independent of the
+    # machine they run on).
+    USER_CONVENTIONS_FILE="${CLOSEOUT_USER_CONVENTIONS-$HOME/.claude/closeout.md}"
+    [[ -n "$USER_CONVENTIONS_FILE" && -f "$USER_CONVENTIONS_FILE" ]] || USER_CONVENTIONS_FILE=""
+
+    # A conventions file may replace the whole taxonomy rather than just move
+    # destinations, by carrying a "## Promotion tiers" section. When one does, the
+    # plugin's default table is suppressed so the prompts never carry two competing
+    # tier lists. The project's section wins; a personal one applies only where the
+    # project defines none. CONVENTIONS_DEFINE_TIERS says whose ("project" or
+    # "user"), TIERS_FILE which file holds them.
     CONVENTIONS_DEFINE_TIERS=""
+    TIERS_FILE=""
 
     # The people this project names, for the optional "who needs to know" step,
     # which only applies when there are two or more. An explicit CLOSEOUT_TEAM list
@@ -77,7 +94,12 @@ closeout_config() {
     TEAM_COUNT="$(printf '%s' "$TEAM_MEMBERS" | grep -c . || true)"
     if [[ -f "$CONVENTIONS_FILE" ]] &&
        grep -qiE '^#{1,6}[[:space:]]*promotion tiers' "$CONVENTIONS_FILE" 2>/dev/null; then
-        CONVENTIONS_DEFINE_TIERS="1"
+        CONVENTIONS_DEFINE_TIERS="project"
+        TIERS_FILE="$CONVENTIONS_FILE"
+    elif [[ -n "$USER_CONVENTIONS_FILE" ]] &&
+       grep -qiE '^#{1,6}[[:space:]]*promotion tiers' "$USER_CONVENTIONS_FILE" 2>/dev/null; then
+        CONVENTIONS_DEFINE_TIERS="user"
+        TIERS_FILE="$USER_CONVENTIONS_FILE"
     fi
 
     # Where per-project reference lives. Explicit override wins; otherwise pick the

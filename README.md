@@ -65,8 +65,8 @@ if you don't, the hooks silently never run and you get `/closeout` only.
 
 | Part | What it does |
 |------|--------------|
-| `/closeout` command | A saved prompt. Type it before ending a session and the agent reviews learnings and updates durable docs **live, with full context** — the highest-quality path. |
-| Capture hook (`SessionEnd`) | Spawns a **detached, sandboxed** headless `claude -p` that reads the just-ended transcript and writes candidate notes to a draft file outside the repo. The automatic backstop. |
+| `/closeout` command | A saved prompt. Type it before ending a session and the agent reviews learnings and updates durable docs **live, with full context** — the highest-quality path — then reconciles the project's tracking: ticks its Done when list and brings its Now block's date and next action up to date. |
+| Capture hook (`SessionEnd`) | Spawns a **detached, tool-restricted** headless `claude -p` that reads the just-ended transcript and writes candidate notes to a draft file outside the repo. The automatic backstop. |
 | Review hook (`SessionStart`) | If drafts exist, injects a reminder instructing the agent to surface them first-thing and offer to promote — confirm the proposed tier, verify each claim against current code, then promote and delete the draft, only with your go-ahead. Never silently. |
 | Who needs to know | *Optional.* When the project names two or more people, `/closeout` and the capture draft end with a short table of who should hear about what, and why them. Nothing is sent; see below. |
 
@@ -174,6 +174,22 @@ rules you add. It is prose appended to a prompt; there is no schema to learn. Se
 [`examples/project-conventions.md`](examples/project-conventions.md) for both
 forms worked through.
 
+### Your own conventions, in every repository
+
+A second, personal file sits above every repository you work in:
+`~/.claude/closeout.md`. Use it for what is yours rather than the team's — an
+extra destination (say, learnings about a tool you maintain go upstream to its
+repository), a house rule, a line you want in every closeout report. Same form:
+prose, no schema.
+
+It is read **after** the project's `.claude/closeout.md`, and the project's file
+wins wherever the two disagree — a team's conventions are not overridden by one
+member's habits. Where the project says nothing, the personal file stands over the
+plugin's defaults; that includes a `## Promotion tiers` section of its own, which
+applies only in projects that define no tiers. The command, the capture prompt
+and the review reminder all read it. `CLOSEOUT_USER_CONVENTIONS` points at another
+file, or, set to an empty value, leaves the personal layer out.
+
 ### Other environment variables
 
 | Variable | Default | Purpose |
@@ -184,18 +200,27 @@ forms worked through.
 | `CLOSEOUT_DECISIONS_FILE` | `<doc dir>/DECISIONS.md` | Where architectural decisions are logged. |
 | `CLOSEOUT_MIN_LINES` | `6` | Transcript lines below which a session is too trivial to capture. |
 | `CLOSEOUT_DRAFT_ROOT` | `~/.claude/closeout-drafts` | Where drafts are kept. |
-| `CLOSEOUT_DRAFT_RETENTION_DAYS` | `3` | Days a draft stays after it has first been offered in a session; a draft nobody has been shown is kept. |
+| `CLOSEOUT_DRAFT_RETENTION_DAYS` | `3` | Days a draft stays after the first session start that listed it (headless runs in the project count too); a draft no session has listed yet is kept. Pruned once more than this many full days have passed. |
 | `CLOSEOUT_CLAUDE_BIN` | auto-detected | Explicit path to the `claude` binary. |
 | `CLOSEOUT_TEAM` | unset | Comma-separated names. Overrides team detection for the "who needs to know" step. |
 | `CLOSEOUT_PEOPLE_DIR` | first of `memory/people`, `docs/people`, `people` | Where one-file-per-person profiles live. |
+| `CLOSEOUT_USER_CONVENTIONS` | `~/.claude/closeout.md` | Your personal conventions file. Empty leaves the personal layer out. |
 
 ### Who needs to know
 
 Promotion decides where a learning is kept; this step decides who should hear
 about it now. It switches on by itself when the project names two or more people:
 one profile per person in the people directory (README excluded), bullets under a
-`## Team` heading in `.claude/closeout.md`, or an explicit `CLOSEOUT_TEAM`. With
-one person or none it stays out of the way.
+`## Team` heading in `.claude/closeout.md`, or an explicit `CLOSEOUT_TEAM`; the
+`/closeout` command also counts a People section in the project README. With one
+person or none it stays out of the way. The personal conventions file never adds
+people: who is on a project is the project's to say.
+
+Where the README's People section gives roles (owns · does · helps · ask first ·
+keep told), `/closeout` uses them: whoever owns the outcome or is to be kept told
+hears about progress on it; whoever is to be asked first hears about decisions not
+yet taken, before they are taken; whoever does or helps hears where their own
+work is affected.
 
 The output is a table — who, what, why them, and where it is recorded — and it is
 advice, not delivery. Nothing is sent: a message to a colleague goes out in a
@@ -224,9 +249,11 @@ Each non-trivial session close spawns one headless run billed to your account.
 The capture child is deliberately boxed in:
 
 - `--allowedTools "Read,Write"` — no Bash, no network tools.
-- It runs from the draft directory, so that is its working directory and your
-  repository is outside its reach. The transcript's directory, added with
-  `--add-dir` so it can read the session, is the one grant beyond that.
+- It runs from the draft directory, so that is its working directory: writes to
+  your repository fall outside what `acceptEdits` approves unprompted, and a
+  headless run has nobody to approve them. The transcript's directory, added with
+  `--add-dir` so it can read the session, is the one grant beyond that, and the
+  child is prompted to write nothing there.
 - It is told explicitly not to edit any in-repo documentation — only the scratch file.
 
 Promotion into real docs always happens in a normal, interactive session with
@@ -244,12 +271,13 @@ your approval.
   to tell them apart.
 - **Recursion guard.** The capture child would itself trigger `SessionEnd` on exit;
   the script early-exits when `CLOSEOUT_HOOK_CHILD` is set. Do not remove that guard.
-- **The `/closeout` sentinel follows the project root.** `/closeout` keys its
-  draft directory off the session's project directory (`CLAUDE_PROJECT_DIR`, else
-  the git top level, else the current directory). A session that has `cd`'d into a
-  different repository would still write it to the wrong place; setting
-  `CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR=1` keeps the agent's shell in the
-  project and removes the case.
+- **The `/closeout` sentinel follows the agent's shell.** `/closeout` keys its
+  draft directory off the basename of the current directory, as the hooks key
+  theirs off the directory the session started in. An agent whose shell has
+  `cd`'d elsewhere writes the sentinel to the wrong place and the capture runs
+  anyway, producing one redundant draft. Setting
+  `CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR=1` returns the shell to the project
+  directory after each command and removes the case.
 - **Project keying is by directory basename.** Two checkouts with the same
   basename share a draft directory. Set `CLOSEOUT_DRAFT_ROOT` per checkout if that
   bites you.
