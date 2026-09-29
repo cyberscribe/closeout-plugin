@@ -113,7 +113,7 @@ fi
 if [[ "${TEAM_COUNT:-0}" -ge 2 ]]; then
     context="$context
 
-This project names more than one person, so a draft may end with a 'Who needs to know' section. After promoting, present it to the user as a short list to act on, pointing at where each item now lives. Send nothing and keep it out of the repository — it is communication, not context."
+This project names more than one person, so a draft may end with a 'Who needs to know' section. After promoting, present it to the user as the short who / what / why table, pointing at where each item now lives. Send nothing and keep it out of the repository — it is communication, not context."
 fi
 
 jq -nc --arg c "$context" \

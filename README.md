@@ -65,7 +65,7 @@ if you don't, the hooks silently never run and you get `/closeout` only.
 
 | Part | What it does |
 |------|--------------|
-| `/closeout` command | A saved prompt. Type it before ending a session and the agent reviews learnings and updates durable docs **live, with full context** — the highest-quality path — then reconciles the project's tracking: ticks its Done when list and brings its Now block's date and next action up to date. |
+| `/closeout` command | A saved prompt. Type it before ending a session and the agent reviews learnings and updates durable docs **live, with full context** — the highest-quality path — then reconciles the project's tracking: ticks its Done when list and brings its Current state block up to date — state, blocker, date and a dated line. |
 | Capture hook (`SessionEnd`) | Spawns a **detached, tool-restricted** headless `claude -p` that reads the just-ended transcript and writes candidate notes to a draft file outside the repo. The automatic backstop. |
 | Review hook (`SessionStart`) | If drafts exist, injects a reminder instructing the agent to surface them first-thing and offer to promote — confirm the proposed tier, verify each claim against current code, then promote and delete the draft, only with your go-ahead. Never silently. |
 | Who needs to know | *Optional.* When the project names two or more people, `/closeout` and the capture draft end with a short table of who should hear about what, and why them. Nothing is sent; see below. |

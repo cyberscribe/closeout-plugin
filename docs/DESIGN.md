@@ -212,13 +212,15 @@ debugging, can point the hooks at a known file or at none.
 ## Tracking, reconciled after the learnings
 
 `/closeout` ends by bringing the project's tracking up to date — ticking its Done
-when list and refreshing the Now block's date, next action, waiting-on lines and
-state. It is a separate step, reported separately, because context and tracking
-are different axes: merged, the closeout becomes a status update and the learnings
-stop being recorded. Tracking is reconciled but never invented. A next action
-nobody can name is written as the honest gap `none found — decide at the next
-review`, which the projects board flags, and adding a missing Now block or marking
-a project done are left to the projects commands that own them. The capture child
+when list and refreshing the Current state block: its state, its `Blocked by:`
+line, its date and the dated line that says where the work stands. It is a
+separate step, reported separately, because context and tracking are different
+axes: merged, the closeout becomes a status update and the learnings stop being
+recorded. Tracking is reconciled but never invented. The state moves only when
+the session plainly moved it, and a blocker is written down with the date it
+began, so the projects board can flag one that has lasted too long; adding a
+missing Current state block, converting an older block, pausing a project or
+marking it done are left to the person and the projects commands that own them. The capture child
 does none of this: it cannot read the repository, and tracking changed
 unattended is tracking nobody trusts.
 

@@ -98,27 +98,30 @@ the repository is the project — and open its entry point.
   its finish line ("3 of 5"). A tick is held to the verification standard's row
   for that kind of work, as `/projects:close` holds it; short of it, leave the
   box and say in the dated line what is missing.
-- **The Now block**, when the README has one. Bring it up to date:
+- **The Current state block**, when the README has one. Bring it up to date:
+  - `State:` changes only when it plainly moved — to `doing` when work started
+    today, to `blocked` when this session left the work unable to move until
+    something outside it happens, back to `doing` (or `ready`) when a blocker
+    cleared. `paused` and `done` are the person's call: propose them, and leave
+    marking a project done to `/projects:close`. When the state changes and the
+    register has a State column, show the matching one-cell edit and make it on
+    a yes; any folder move `.claude/projects.md` ties to the new state is named,
+    not made.
+  - `Blocked by:` one line — what the work is blocked by and since when, as an
+    absolute date — set when the state moves to `blocked`, and removed when the
+    blocker clears. Suggest it from the session and confirm it with the user.
   - `Updated:` today's date, absolute.
-  - `Next action:` if this session did it, or the next step moved, write the new
-    one — one concrete, visible step with who takes it. Suggest it from the
-    session and confirm it with the user. If nobody can say yet, write
-    `none found — decide at the next review`, so the board flags an honest gap
-    rather than a vague action hiding one.
-  - `Waiting on:` add a line for anything this session left waiting on someone
-    (who — what — since the date), one line each with the label repeated, and
-    remove a line that has been answered. `State:` changes only when it plainly
-    moved — to `waiting` when the next step is someone else's reply, to `doing`
-    when work started today. When it changes and the register has a State
-    column, show the matching one-cell edit and make it on a yes; any folder
-    move `.claude/projects.md` ties to the new state is named, not made.
-  - Rewrite the dated line under the block rather than adding another; git keeps
-    the history.
+  - The dated line that ends the block says in a sentence where the work stands
+    after this session. Add one when the block has none; otherwise rewrite it
+    rather than stacking another, since git keeps the history.
+  - `Check-in:` and any **Planned** list stay as they are unless the user asks.
   - Keep the labels as the file writes them, bold or plain. A
     `proposed by /projects:adopt` marker stays where it is: confirming a proposal
-    is the person's, at their review.
-- **No Now block or Done when?** Leave the README's shape alone and mention
-  `/projects:adopt`, which adds the missing sections.
+    is the person's.
+- **No Current state block or Done when?** Leave the README's shape alone and
+  mention `/projects:adopt`, which adds the missing sections. A README still
+  carrying an older Now block is left as it is: mention that `/projects:adopt`
+  offers the conversion.
 - **Every box ticked?** Say the project has reached its finish line and suggest
   `/projects:close <slug>`, which walks the evidence and the retrospective. The
   closeout does not mark a project done itself.
@@ -137,14 +140,12 @@ Promotion decides where a learning is kept; this decides who should hear about i
 now. When the README's People section gives roles, let them choose:
 
 - **owns** and **keep told** hear about the outcome — a Done when item ticked, the
-  finish line reached or moved, the next action changing hands, the project now
-  waiting on someone.
+  finish line reached or moved, ownership changing, the project now blocked.
 - **ask first** hear about decisions not yet taken — anything this closeout left
   as a proposal, and any Done when item someone wants to change or waive — before
   the decision, not after it.
 - **does** and **helps** hear where their work is affected: a decision changes
-  what they are doing, it blocks or unblocks them, or the new next action is
-  theirs.
+  what they are doing, it blocks or unblocks them, or work passes to them.
 
 Without roles, name a person only where their work is affected in one of those
 ways, or their profile says they are the one to go to for it. Present a short
@@ -157,9 +158,9 @@ table:
 ## Report
 
 - What was promoted, and at which tier.
-- What is proposed and waiting for a decision.
+- What is proposed and still needs a decision.
 - Tracking, reported apart from the learnings: boxes ticked, how far from the
-  finish line, and the Now block's new next action and date.
+  finish line, and the Current state block's new state, blocker and date.
 - Who needs to know what, if that step applied.
 - What was verified, and against which standard, if the repository has one.
 - Which files were touched, new against modified, and anything left unfinished.
@@ -197,8 +198,9 @@ closeout that actually happened.
   a line there has to earn its place against the line it displaces.
 - **Point rather than restate.** One copy of a fact, and pointers to it, is how a
   record stays true.
-- **An honest gap beats a guess.** `none found — decide at the next review` is
-  visible to the board; an invented next action is not.
+- **An honest state beats a hopeful one.** A project marked `blocked`, with what
+  blocks it, is visible to the board; one left at `doing` while nothing can
+  move is not.
 - **Send nothing.** A message to a colleague goes out in the user's own voice,
   from them; draft one only when asked. "Nobody in particular" is a common and
   correct answer. If everyone needs to know, the item may be a working standard
