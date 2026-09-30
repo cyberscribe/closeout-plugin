@@ -263,6 +263,34 @@ marking it done are left to the person and the projects commands that own them. 
 does none of this: it cannot read the repository, and tracking changed
 unattended is tracking nobody trusts.
 
+## Committing is left to the person, in submodule order
+
+The command ends with commands, not a commit. Writing or editing the message is
+the person's check that they understand what changed, and a broad staging
+command sweeps in whatever else was in flight, so each path is named. Some
+workspaces keep every commit with a person as a house rule; the plan fits them
+unchanged, because it is always a list of commands to run.
+
+A workspace can hold other repositories as submodules: the kit at `kit/`, and
+projects that are their own repositories. A file changed inside one needs two
+commits, and their order matters. Committed the other way round, the
+workspace records a pointer to a commit its submodule's remote does not have
+yet, and every other clone of the workspace then fails to check it out. So the
+plan runs innermost first: add, commit and push inside the submodule; then add
+its path in the workspace with the other files, and commit. Git's
+`push.recurseSubmodules=check`, which the kit sets, refuses the wrong order at
+push time; the plan avoids reaching that refusal.
+
+## `.claude/skills/` as a destination
+
+In a workspace built on the kit, `.claude/skills/` is generated: the skills
+bridge writes the kit's commands there as skills, with copies of the team's own
+skills from `skills/`, and rewrites what its manifest,
+`.claude/skills/.kit-generated`, lists on its next run. A learning promoted
+into it would be overwritten or left unlisted, so while that manifest exists the
+general-reference destination is `skills/`, where the bridge copies from. A
+repository without the bridge keeps the earlier default.
+
 ## Troubleshooting
 
 **No drafts ever appear.**

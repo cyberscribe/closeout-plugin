@@ -50,6 +50,16 @@ Two axes, and the first is the expensive decision.
 | Project reference | as needed, only in this project | the project folder, `docs/DECISIONS.md` |
 | Templates & agent roles | when that role or scaffold is invoked | `.claude/agents/`, `.claude/commands/` |
 
+In a workspace built on the kit, the always-loaded file is `CLAUDE.md`, and its
+first line imports `kit/CLAUDE.kit.md`. That file, like everything under `kit/`,
+is the kit's: its bytes count in the budget, but it changes by pull request to
+the kit, not in a closeout. Promotions into working standards go below the
+import line. A learning about the kit itself is drafted in the report, and an
+edit inside `kit/` is made only with a person approving it. Where
+`.claude/skills/.kit-generated` exists, `.claude/skills/` is the skills bridge's
+generated copy, rewritten on its next run, so general reference goes to
+`skills/` instead.
+
 **Scope** — shared (committed, reaches teammates) or individual (this machine and
 user only, such as `~/.claude/`). Prefer committed: a teammate cannot use the other.
 
@@ -85,7 +95,7 @@ ablation; it is an offer, and a no ends it. Ask what task would go worse without
 the line. If there is one and the repository has `pilot/ablations/`, draft the
 ablation file there — that task as the prompt, a Check, and the lines exactly as
 they will read (format in `pilot/README.md`, or copy a file already in
-`pilot/ablations/`) — staged with the promotion once it is agreed. If nobody can
+`pilot/ablations/`) — listed in the commit plan with the promotion once it is agreed. If nobody can
 name a task, say so plainly: that is evidence about the tier, and the cheaper
 tier is usually the answer.
 
@@ -102,10 +112,12 @@ the repository is the project — and open its entry point.
   as `/projects:close` holds it; short of it, leave the box and say in the dated
   line what is missing.
 - **Current state**, when the README has one, as the project template
-  (`templates/project-readme.md`) defines it.
+  (`kit/templates/project-readme.md`, or the path `.claude/projects.md` names)
+  defines it.
   Move `State:` only when the session plainly moved it — to `doing`, to `blocked`,
-  or back once a blocker cleared; propose `paused`, and leave `done` to
-  `/projects:close`. Set or clear `Blocked by:` with the user, dated. Set
+  or back once a blocker cleared; propose `paused`, which `/projects:hold` makes
+  (the folder stays where it is), and leave `done` to `/projects:close`. Set or
+  clear `Blocked by:` with the user, dated. Set
   `Updated:` to today and rewrite the dated line (add one if absent) to say where
   the work stands.
   The rest of the block — `Check-in:`, **Planned**, label style, a
@@ -114,7 +126,9 @@ the repository is the project — and open its entry point.
   made.
 - **No Current state block or Done when, or an older Now block?** Leave the
   README's shape alone and mention `/projects:adopt`.
-- **Every box ticked?** Say so and suggest `/projects:close <slug>`.
+- **Every box ticked?** Say so and suggest `/projects:close <slug>`, which
+  archives the folder to `projects/_done/<slug>/`, or wherever the conventions'
+  `Done:` line says.
 - Confirm other task or status files reflect reality, and release any locks or
   claims this session holds.
 
@@ -158,10 +172,32 @@ there, on an explicit yes.
 - Who needs to know what, if that step applied.
 - What was verified, and against which standard, if the repository has one.
 - Which files were touched, new against modified, and anything left unfinished.
+- The commands that commit them, in the order below.
 - Any line the personal conventions ask for.
 
-Leave the commit to the user: stage what you touched, by name (a broad staging
-command sweeps in unrelated work), and summarise it; they write the message.
+Leave the commit to the person. List what you touched, by name (a broad staging
+command sweeps in unrelated work), and give the commands for them to run, with
+each message editable. Where a file you touched sits inside a submodule — for
+example the kit at `kit/`, or a project that is its own repository — the
+commands come in this order: inside the submodule, add, commit and push; then,
+in the workspace, add the submodule's path (`git add kit`) with the other files,
+and commit. The workspace then never records a commit that the submodule's
+remote lacks, and `push.recurseSubmodules=check` refuses such a push anyway.
+With a submodule inside a submodule, the innermost repository comes first and
+each pointer is added in the repository around it. Every `git add` names its
+paths exactly, relative to the repository it runs in, and no command carries a
+comment:
+
+```
+git -C projects/field-study add notes/interviews.md
+git -C projects/field-study commit -m "Interview notes: the second round"
+git -C projects/field-study push
+git add projects/field-study logs/decisions.md
+git commit -m "Field study: second round recorded"
+```
+
+Nothing here commits or pushes on its own; the person runs these, or edits
+them first.
 
 ## Finally, drop the sentinel
 

@@ -198,7 +198,14 @@ closeout_config() {
     # conventional location that exists in this repo.
     local t_always t_general t_project t_templates
     t_always="${CLOSEOUT_TIER_ALWAYS:-$(closeout_first_existing "$project_dir" CLAUDE.md AGENTS.md)}"
-    t_general="${CLOSEOUT_TIER_GENERAL:-$(closeout_first_existing "$project_dir" .claude/skills/ .claude/plugins/)}"
+    # In a workspace built on the kit, .claude/skills/ is the skills bridge's output, rewritten from
+    # kit/ and skills/ on its next run; its manifest, .claude/skills/.kit-generated, says so. A learning
+    # written there would be lost, so general reference goes to skills/, the team's own skills.
+    if [[ -f "$project_dir/.claude/skills/.kit-generated" ]]; then
+        t_general="${CLOSEOUT_TIER_GENERAL:-skills/}"
+    else
+        t_general="${CLOSEOUT_TIER_GENERAL:-$(closeout_first_existing "$project_dir" .claude/skills/ .claude/plugins/)}"
+    fi
     if [[ "$DOC_DIR" == "." ]]; then
         t_project="${CLOSEOUT_TIER_PROJECT:-README.md, $DECISIONS_FILE}"
     else

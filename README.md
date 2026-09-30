@@ -9,9 +9,10 @@ It is **not** a replacement for updating docs during real work. It is the net un
 This repository is the plugin on its own. It is also bundled, identically, in the
 [workspace context kit](https://github.com/cyberscribe/agentic-workspace-kit) at
 `plugins/closeout/` — the kit is the wider practice the plugin implements one
-ritual of, with an installer that deploys both into a team repository. Changes
-are made in the kit and published here, so issues and pull requests are best
-opened there.
+ritual of. A workspace built on the kit carries the kit as a submodule at `kit/`
+and reads this plugin there in place, through the kit's directory marketplace,
+so it needs no copy of its own. Changes are made in the kit and published here,
+so issues and pull requests are best opened there.
 
 ## Install
 
@@ -166,7 +167,7 @@ under `"env"` in the project's `.claude/settings.json`:
 | Variable | Default |
 |---|---|
 | `CLOSEOUT_TIER_ALWAYS` | first of `CLAUDE.md`, `AGENTS.md` |
-| `CLOSEOUT_TIER_GENERAL` | first of `.claude/skills/`, `.claude/plugins/` |
+| `CLOSEOUT_TIER_GENERAL` | first of `.claude/skills/`, `.claude/plugins/`; `skills/` where `.claude/skills/.kit-generated` marks `.claude/skills/` as the kit's generated skills bridge |
 | `CLOSEOUT_TIER_PROJECT` | `<doc dir>/`, `<doc dir>/DECISIONS.md` |
 | `CLOSEOUT_TIER_TEMPLATES` | first of `.claude/agents/`, `.claude/commands/` |
 
@@ -253,6 +254,17 @@ or `none`, picked per row. Nothing is sent: a message to a colleague goes out in
 person's own voice, and with a mail or chat tool connected the most `/closeout`
 does is leave a draft there, on an explicit yes. The table is kept out of the repository too, because it is
 communication rather than context and it is stale the moment it has been read.
+
+## Committing is the person's
+
+Neither `/closeout` nor the hooks commit or push. The report ends with the
+commands for the person to run: each path added by name, each message ready to
+edit, and no command carrying a comment. Where something touched sits inside a
+submodule — the kit at `kit/`, or a project that is its own repository — the
+order is innermost first: add, commit and push inside the submodule, then add
+its path with the other files in the workspace and commit there. The workspace
+then never records a commit its submodule's remote lacks, which
+`push.recurseSubmodules=check` would refuse to push in any case.
 
 ## Dependencies
 
