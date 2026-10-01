@@ -60,6 +60,21 @@ edit inside `kit/` is made only with a person approving it. Where
 generated copy, rewritten on its next run, so general reference goes to
 `skills/` instead.
 
+**Sensitive projects.** A project whose README reads `Sensitivity: sensitive` is
+kept untracked or as its own private repository, and learnings from it land in its
+own folder only. Nothing from it — a name, a figure, a finding, a quotation — is
+promoted into a file the workspace tracks or shares: not `CLAUDE.md`, `docs/`,
+`skills/`, the cross-project log, a people profile, nor a kit pull request. Where
+a learning generalises, the report offers a stripped version and says it came from
+a sensitive project; the person decides whether it travels.
+
+**The cross-project filter.** Where the repository keeps a cross-project decisions
+log (`logs/decisions.md`, or the one its conventions name), a decision goes there
+only if it still means something with every reference to the project, technology,
+file path and stakeholder stripped out; otherwise it stays in the project. When it
+is unclear, it stays in the project — promotion is cheap, demotion is not. Use the
+log's own entry format.
+
 **Scope** — shared (committed, reaches teammates) or individual (this machine and
 user only, such as `~/.claude/`). Prefer committed: a teammate cannot use the other.
 
@@ -135,13 +150,18 @@ the repository is the project — and open its entry point.
 ## Who needs to know — when two or more people are known
 
 `Who needs to know:` in `.claude/closeout.md` is `auto` (the default), `ask` or
-`off`; the same line in a project README's People section overrides it. `off`
-skips this step; `ask` offers it in one line and goes on only on a yes.
+`off`; the same line in a project README's People section overrides it, and with
+neither, the line in the person's own conventions applies. `off` skips this step;
+`ask` offers it in one line and goes on only on a yes. The person's own conventions
+set the step but add nobody to a project.
 
 People are named in the README's People section, the team roster (`team/people.md`),
 the people directory (`memory/people/`, `docs/people/`, `people/`, or where
 `.claude/projects.md` says), a `## Team` section in `.claude/closeout.md`, or
-`CLOSEOUT_TEAM`. The project's roles win over the roster's; the roster adds anyone
+`CLOSEOUT_TEAM`. A roster row with an email address, or a phone number outside its
+channel and handle cells, is left out, and the report says whose: contact details
+belong in a profile or an address book, not the repository.
+The project's roles win over the roster's; the roster adds anyone
 else whose default relationship, scoped or not, matches what changed. With one
 person or none, skip this without comment. Where the People section gives roles:
 
@@ -195,6 +215,12 @@ git -C projects/field-study push
 git add projects/field-study logs/decisions.md
 git commit -m "Field study: second round recorded"
 ```
+
+A project marked `Versioned: untracked` has nothing to commit in the workspace;
+say so rather than listing its files. A project folder that is a repository of its
+own but not a submodule of the workspace commits inside itself only; the workspace
+does not `git add` it, which would record an embedded repository, and the report
+suggests `/projects:adopt` to make it `own-repo` or `untracked`.
 
 Nothing here commits or pushes on its own; the person runs these, or edits
 them first.
